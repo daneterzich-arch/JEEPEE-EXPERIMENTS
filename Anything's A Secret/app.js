@@ -11,6 +11,10 @@ const passwordInput = document.querySelector('#password-input');
 const passwordHint = document.querySelector('#password-hint');
 const secretCount = document.querySelector('#secret-count');
 const toast = document.querySelector('#toast');
+const passwordIndexToggle = document.querySelector('#password-index-toggle');
+const passwordIndexPanel = document.querySelector('#password-index-panel');
+const passwordFilters = document.querySelector('#password-filters');
+const passwordList = document.querySelector('#password-list');
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#a9c5af');
@@ -215,11 +219,57 @@ let playing = false;
 let toastTimeout;
 let lastFrameTime = performance.now();
 
-const passwordSecrets = new Map([
-  ["anything's a secret", 'title'],
-  ['welcome', 'welcome'],
-  ['look closer', 'look closer']
-]);
+const passwordRanks = ['Surface', 'Easy', 'Mediocre', 'Difficult', 'Obscure', 'Unique'];
+const passwordIndex = [
+  { phrase: 'anything', label: 'Anything', id: 'anything', rank: 'Surface' },
+  { phrase: "anything's a secret", label: "Anything's A Secret", id: 'title', rank: 'Easy' },
+  { phrase: 'welcome', label: 'Welcome', id: 'welcome', rank: 'Surface' },
+  { phrase: 'look closer', label: 'Look closer', id: 'look closer', rank: 'Mediocre' }
+];
+const passwordSecrets = new Map(passwordIndex.map(({ phrase, id }) => [phrase, id]));
+
+function renderPasswordIndex(rank = 'All') {
+  passwordList.replaceChildren();
+  const entries = passwordIndex.filter((entry) => rank === 'All' || entry.rank === rank);
+
+  for (const entry of entries) {
+    const item = document.createElement('li');
+    item.className = 'password-index-entry';
+    item.dataset.rank = entry.rank;
+
+    const label = document.createElement('span');
+    label.textContent = entry.label;
+    const tier = document.createElement('span');
+    tier.className = 'password-index-rank';
+    tier.textContent = entry.rank;
+    item.append(label, tier);
+    passwordList.append(item);
+  }
+}
+
+for (const rank of ['All', ...passwordRanks]) {
+  const filter = document.createElement('button');
+  filter.className = 'password-filter';
+  filter.type = 'button';
+  filter.textContent = rank;
+  filter.setAttribute('aria-pressed', String(rank === 'All'));
+  if (rank !== 'All') filter.dataset.rank = rank;
+  filter.addEventListener('click', () => {
+    for (const button of passwordFilters.querySelectorAll('button')) {
+      button.setAttribute('aria-pressed', String(button === filter));
+    }
+    renderPasswordIndex(rank);
+  });
+  passwordFilters.append(filter);
+}
+
+renderPasswordIndex();
+
+passwordIndexToggle.addEventListener('click', () => {
+  const isExpanded = passwordIndexToggle.getAttribute('aria-expanded') === 'true';
+  passwordIndexToggle.setAttribute('aria-expanded', String(!isExpanded));
+  passwordIndexPanel.hidden = isExpanded;
+});
 
 function showToast(message) {
   toast.textContent = message;
@@ -336,7 +386,7 @@ passwordForm.addEventListener('submit', (event) => {
   passwordHint.textContent = 'The world keeps what you type.';
   unlockedPasswords.add(passwordSecrets.get(phrase));
   secretCount.textContent = `SECRETS FOUND  ${unlockedPasswords.size}`;
-  showToast('Secret Unlocked');
+  showToast(phrase === 'anything' ? 'Congratulations, jackass' : 'Secret Unlocked');
 });
 
 passwordInput.addEventListener('input', () => {

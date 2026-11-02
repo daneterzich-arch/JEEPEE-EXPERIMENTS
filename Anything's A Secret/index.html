@@ -42,6 +42,18 @@
       <kbd>;</kbd>
     </button>
 
+    <section class="password-index" aria-label="Password index">
+      <button id="password-index-toggle" class="password-index-toggle" type="button" aria-expanded="false"
+        aria-controls="password-index-panel">
+        <span>PASSWORD INDEX</span>
+        <span class="index-arrow" aria-hidden="true">⌄</span>
+      </button>
+      <div id="password-index-panel" class="password-index-panel" hidden>
+        <div id="password-filters" class="password-filters" aria-label="Filter passwords by rank"></div>
+        <ul id="password-list" class="password-list" aria-live="polite"></ul>
+      </div>
+    </section>
+
     <form id="password-form" class="password-card">
       <label for="password-input">FOUND A CLUE?</label>
       <div class="password-row">
