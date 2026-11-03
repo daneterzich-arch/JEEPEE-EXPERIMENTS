@@ -434,7 +434,13 @@ passwordForm.addEventListener('submit', (event) => {
 
   passwordInput.removeAttribute('aria-invalid');
   passwordHint.textContent = 'The world keeps what you type.';
-  unlockedPasswords.add(passwordSecrets.get(phrase));
+  const passwordId = passwordSecrets.get(phrase);
+  if (unlockedPasswords.has(passwordId)) {
+    showToast('Password already redeemed');
+    return;
+  }
+
+  unlockedPasswords.add(passwordId);
   secretCount.textContent = `SECRETS FOUND  ${unlockedPasswords.size}`;
   renderPasswordIndex();
   showToast(phrase === 'anything' ? 'Congratulations, jackass' : 'Secret Unlocked');
