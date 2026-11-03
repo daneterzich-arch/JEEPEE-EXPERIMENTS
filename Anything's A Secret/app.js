@@ -176,6 +176,66 @@ scene.add(signFace);
 addBlock(0.65, 3.1, 0.65, stoneLight, [-5.2, 3.05, -13.05]);
 addBlock(0.65, 3.1, 0.65, stoneLight, [5.2, 3.05, -13.05]);
 
+function createWordSprite(text, options = {}) {
+  const {
+    fillStyle = '#f5f0d7',
+    font = '700 180px Georgia, serif',
+    opacity = 1,
+    scale = [14, 3.8, 1]
+  } = options;
+
+  const canvasTexture = document.createElement('canvas');
+  canvasTexture.width = 1600;
+  canvasTexture.height = 420;
+  const context = canvasTexture.getContext('2d');
+
+  context.clearRect(0, 0, canvasTexture.width, canvasTexture.height);
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.fillStyle = fillStyle;
+  context.font = font;
+  context.fillText(text, canvasTexture.width / 2, canvasTexture.height / 2);
+
+  const texture = new THREE.CanvasTexture(canvasTexture);
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  const material = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+    opacity,
+    depthWrite: false
+  });
+
+  const sprite = new THREE.Sprite(material);
+  sprite.scale.set(...scale);
+  return sprite;
+}
+
+const easyWorldWord = createWordSprite("ANYTHING'S A SECRET", {
+  fillStyle: '#f4ecce',
+  font: '700 180px Georgia, serif',
+  opacity: 0.95,
+  scale: [24, 5.2, 1]
+});
+easyWorldWord.position.set(28, 4.2, 18.5);
+scene.add(easyWorldWord);
+
+const sunGlow = new THREE.Mesh(
+  new THREE.SphereGeometry(11.5, 36, 36),
+  new THREE.MeshBasicMaterial({ color: '#ffd778', transparent: true, opacity: 0.96 })
+);
+sunGlow.position.set(68, 34, -130);
+scene.add(sunGlow);
+
+const sunWord = createWordSprite('sunc0d3', {
+  fillStyle: 'rgba(255, 172, 76, 0.24)',
+  font: '700 220px Georgia, serif',
+  opacity: 0.26,
+  scale: [14, 4.8, 1]
+});
+sunWord.position.set(68, 34, -118.5);
+scene.add(sunWord);
+
 for (const x of [-6.9, 6.9]) {
   const lantern = new THREE.PointLight('#ffdfa1', 11, 17, 2);
   lantern.position.set(x, 7.1, -11.4);
@@ -245,10 +305,10 @@ const passwordIndex = [
     rank: 'Surface'
   },
   {
-    phrase: 'look closer',
-    title: 'Details in the Grass',
-    description: 'The smallest details can point toward something larger.',
-    id: 'look closer',
+    phrase: 'sunc0d3',
+    title: 'Sunlit Cipher',
+    description: 'The answer is baked into the bright side of the sky.',
+    id: 'sunc0d3',
     rank: 'Mediocre'
   }
 ];
