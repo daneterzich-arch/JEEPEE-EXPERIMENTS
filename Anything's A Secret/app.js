@@ -228,9 +228,9 @@ sunGlow.position.set(68, 34, -130);
 scene.add(sunGlow);
 
 const sunWord = createWordSprite('sunc0d3', {
-  fillStyle: 'rgba(255, 172, 76, 0.24)',
+  fillStyle: 'rgba(255, 187, 89, 0.52)',
   font: '700 220px Georgia, serif',
-  opacity: 0.26,
+  opacity: 0.7,
   scale: [14, 4.8, 1]
 });
 sunWord.position.set(68, 34, -118.5);
