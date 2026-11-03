@@ -377,14 +377,39 @@ kbd {
 }
 
 .password-index-entry {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid rgba(249, 246, 228, .12);
+  color: rgba(245, 243, 233, .92);
+  font-size: 11px;
+}
+
+.password-index-select {
   display: flex;
+  width: 100%;
   min-height: 32px;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  border-top: 1px solid rgba(249, 246, 228, .12);
-  color: rgba(245, 243, 233, .92);
-  font-size: 11px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.password-index-select:focus-visible {
+  outline: 1px solid var(--leaf);
+  outline-offset: -2px;
+}
+
+.password-index-description {
+  margin: 0 0 10px;
+  color: rgba(245, 243, 233, .7);
+  font-size: 10px;
+  line-height: 1.5;
 }
 
 .password-index-rank {
