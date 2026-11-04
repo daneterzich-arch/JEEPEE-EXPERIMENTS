@@ -5,8 +5,6 @@ const startScreen = document.querySelector('#start-screen');
 const enterButton = document.querySelector('#enter-world');
 const startStatus = document.querySelector('#start-status');
 const settingsPanel = document.querySelector('#settings-panel');
-const settingsToggle = document.querySelector('#settings-toggle');
-const openSettingsButton = document.querySelector('#open-settings');
 const closeSettingsButton = document.querySelector('#close-settings');
 const timeOfDayInputs = document.querySelectorAll('input[name="time-of-day"]');
 const starSetting = document.querySelector('#star-setting');
@@ -523,7 +521,6 @@ function setSettingsOpen(isOpen) {
   if (isOpen) {
     settingsReturnFocus = document.activeElement;
     settingsPanel.hidden = false;
-    settingsToggle.setAttribute('aria-expanded', 'true');
     keys.clear();
     if (document.pointerLockElement === canvas) document.exitPointerLock();
     closeSettingsButton.focus();
@@ -531,7 +528,6 @@ function setSettingsOpen(isOpen) {
   }
 
   settingsPanel.hidden = true;
-  settingsToggle.setAttribute('aria-expanded', 'false');
   if (settingsReturnFocus instanceof HTMLElement && settingsReturnFocus.isConnected) {
     settingsReturnFocus.focus();
   }
@@ -541,8 +537,6 @@ function toggleSettings() {
   setSettingsOpen(settingsPanel.hidden);
 }
 
-settingsToggle.addEventListener('click', toggleSettings);
-openSettingsButton.addEventListener('click', toggleSettings);
 closeSettingsButton.addEventListener('click', () => setSettingsOpen(false));
 
 enterButton.addEventListener('click', () => {

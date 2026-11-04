@@ -182,33 +182,6 @@ button {
   backdrop-filter: blur(12px);
 }
 
-.settings-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 9px;
-  border: 1px solid rgba(249, 246, 228, .27);
-  border-radius: 4px;
-  color: rgba(255, 255, 255, .88);
-  background: rgba(20, 35, 27, .45);
-  font: 9px var(--mono);
-  letter-spacing: .1em;
-  cursor: pointer;
-  backdrop-filter: blur(12px);
-}
-
-.settings-toggle:hover,
-.settings-toggle:focus-visible {
-  border-color: var(--leaf);
-  color: var(--leaf);
-}
-
-.settings-toggle kbd {
-  min-width: 33px;
-  height: 18px;
-  font-size: 8px;
-}
-
 .control-chip {
   bottom: 38px;
   left: 34px;
@@ -715,23 +688,6 @@ kbd {
   background: var(--leaf);
   font: 500 10px var(--mono);
   letter-spacing: .1em;
-}
-
-.settings-open-button {
-  margin: 0 0 8px;
-  padding: 10px 15px;
-  border: 1px solid rgba(246, 245, 233, .3);
-  border-radius: 3px;
-  color: var(--ink);
-  background: rgba(255, 255, 255, .06);
-  font: 500 9px var(--mono);
-  letter-spacing: .1em;
-}
-
-.settings-open-button:hover,
-.settings-open-button:focus-visible {
-  border-color: var(--leaf);
-  color: var(--leaf);
 }
 
 .settings-panel {
