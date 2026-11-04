@@ -34,6 +34,8 @@
       <span>MOVE</span>
       <i></i>
       <kbd>SPACE</kbd><span>JUMP</span>
+      <i></i>
+      <kbd>F</kbd><span>LIGHT</span>
     </div>
 
     <button id="mouse-toggle" class="mouse-toggle" type="button" aria-pressed="false">
@@ -77,6 +79,7 @@
           <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> WALK</span>
           <span><kbd>SPACE</kbd> JUMP</span>
           <span><kbd>;</kbd> FREE MOUSE</span>
+          <span><kbd>F</kbd> FLASHLIGHT</span>
         </div>
         <p id="start-status" class="start-status" role="status"></p>
       </div>
@@ -97,16 +100,12 @@
               <label><input type="radio" name="time-of-day" value="night"><span>NIGHT</span></label>
             </div>
           </fieldset>
-          <label id="star-setting" class="star-setting" for="star-count" hidden>
-            <span>STARS <output id="star-count-value" for="star-count">8</output></span>
-            <input id="star-count" type="range" min="1" max="15" value="8" step="1">
-          </label>
         </div>
       </div>
     </section>
 
     <footer class="bottom-note">
-      <span>MOVE WITH WASD <i>·</i> JUMP WITH SPACE <i>·</i> PRESS ; TO FREE YOUR CURSOR</span>
+      <span>MOVE WITH WASD <i>·</i> JUMP WITH SPACE <i>·</i> F FOR FLASHLIGHT <i>·</i> ; FREE MOUSE</span>
       <span>YOU ARE HERE <b>●</b></span>
     </footer>
   </main>

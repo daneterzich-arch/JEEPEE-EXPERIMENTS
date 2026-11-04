@@ -7,9 +7,6 @@ const startStatus = document.querySelector('#start-status');
 const settingsPanel = document.querySelector('#settings-panel');
 const closeSettingsButton = document.querySelector('#close-settings');
 const timeOfDayInputs = document.querySelectorAll('input[name="time-of-day"]');
-const starSetting = document.querySelector('#star-setting');
-const starCountInput = document.querySelector('#star-count');
-const starCountValue = document.querySelector('#star-count-value');
 const mouseToggle = document.querySelector('#mouse-toggle');
 const mouseLabel = document.querySelector('#mouse-label');
 const passwordForm = document.querySelector('#password-form');
@@ -310,6 +307,11 @@ const player = {
 camera.position.copy(player.position);
 camera.rotation.set(player.pitch, player.yaw, 0);
 
+const flashlightDirection = new THREE.Vector3();
+const flashlight = new THREE.SpotLight('#fff1d2', 95, 110, Math.PI / 7, 0.55, 1.6);
+flashlight.visible = false;
+scene.add(flashlight, flashlight.target);
+
 const keys = new Set();
 const unlockedPasswords = new Set();
 let playing = false;
@@ -317,6 +319,7 @@ let toastTimeout;
 let lastFrameTime = performance.now();
 let activePasswordRank = 'All';
 let expandedPasswordId = null;
+let starCount = Math.floor(Math.random() * 15) + 1;
 
 const passwordRanks = ['Surface', 'Easy', 'Mediocre', 'Difficult', 'Obscure', 'Unique'];
 const passwordIndex = [
@@ -365,7 +368,6 @@ const passwordIndex = [
 ];
 const passwordSecrets = new Map(passwordIndex.filter(({ phrase }) => phrase).map(({ phrase, id }) => [phrase, id]));
 let timeOfDay = 'day';
-let starCount = Number(starCountInput.value);
 let activeStarPhrase = null;
 
 function updateWorldSettings() {
@@ -380,9 +382,6 @@ function updateWorldSettings() {
     passwordSecrets.set('fu11m00n', 'fullmoon');
   }
 
-  starSetting.hidden = !isNight;
-  starCountValue.value = String(starCount);
-  starCountValue.textContent = String(starCount);
   scene.background.set(isNight ? '#09111d' : '#a9c5af');
   scene.fog.color.set(isNight ? '#09111d' : '#a9c5af');
   ambient.color.set(isNight ? '#63758e' : '#e8f4df');
@@ -406,11 +405,6 @@ for (const input of timeOfDayInputs) {
     updateWorldSettings();
   });
 }
-
-starCountInput.addEventListener('input', () => {
-  starCount = Number(starCountInput.value);
-  updateWorldSettings();
-});
 
 updateWorldSettings();
 
@@ -588,6 +582,17 @@ document.addEventListener('keydown', (event) => {
 
   if (!playing) return;
 
+  if (!settingsPanel.hidden) return;
+
+  if (event.code === 'KeyF') {
+    event.preventDefault();
+    if (!event.repeat) {
+      flashlight.visible = !flashlight.visible;
+      showToast(flashlight.visible ? 'Flashlight on' : 'Flashlight off');
+    }
+    return;
+  }
+
   if (event.code === 'Semicolon') {
     event.preventDefault();
     if (document.pointerLockElement === canvas) {
@@ -735,6 +740,12 @@ function animate(now) {
     camera.position.copy(player.position);
     camera.rotation.set(player.pitch, player.yaw, 0);
   }
+
+  camera.getWorldDirection(flashlightDirection);
+  flashlightDirection.y -= 0.06;
+  flashlightDirection.normalize();
+  flashlight.position.copy(camera.position).addScaledVector(flashlightDirection, 0.3);
+  flashlight.target.position.copy(camera.position).addScaledVector(flashlightDirection, 38);
 
   renderer.render(scene, camera);
 }

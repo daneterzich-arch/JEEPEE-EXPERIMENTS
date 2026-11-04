@@ -608,8 +608,7 @@ kbd {
   border: 0;
 }
 
-.time-setting legend,
-.star-setting>span {
+.time-setting legend {
   margin-bottom: 7px;
   color: rgba(246, 245, 233, .76);
   font: 9px var(--mono);
@@ -654,30 +653,6 @@ kbd {
 .time-options input:focus-visible+span {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
-}
-
-.star-setting {
-  display: grid;
-  gap: 5px;
-}
-
-.star-setting[hidden] {
-  display: none;
-}
-
-.star-setting>span {
-  display: flex;
-  justify-content: space-between;
-  margin: 0;
-}
-
-.star-setting output {
-  color: var(--leaf);
-}
-
-.star-setting input {
-  width: 100%;
-  accent-color: var(--leaf);
 }
 
 #enter-world {
