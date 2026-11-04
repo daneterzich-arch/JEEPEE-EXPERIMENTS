@@ -53,6 +53,18 @@ button {
   outline: none;
 }
 
+.tv-youtube-player {
+  position: fixed;
+  z-index: -3;
+  top: 0;
+  left: -220px;
+  width: 200px;
+  height: 200px;
+  overflow: hidden;
+  opacity: 0.001;
+  pointer-events: none;
+}
+
 .game-shell::after {
   position: absolute;
   z-index: -1;

@@ -422,6 +422,30 @@ tvTexture.colorSpace = THREE.SRGBColorSpace;
 let tvPoweredOn = false;
 let tvChannel = '';
 let tvImageVisible = false;
+let youtubePlayer = null;
+
+window.onYouTubeIframeAPIReady = () => {
+  youtubePlayer = new window.YT.Player('tv-youtube-player', {
+    videoId: 'U7pvasP4sOI',
+    playerVars: { autoplay: 0, controls: 0, playsinline: 1 },
+    events: {
+      onReady: () => {
+        if (tvImageVisible) youtubePlayer.playVideo();
+      },
+      onStateChange: (event) => {
+        if (event.data === window.YT.PlayerState.ENDED) {
+          tvPoweredOn = false;
+          updateTv();
+          remoteStatus.textContent = 'The broadcast ended. Television off.';
+        }
+      }
+    }
+  });
+};
+
+const youtubeApiScript = document.createElement('script');
+youtubeApiScript.src = 'https://www.youtube.com/iframe_api';
+document.head.append(youtubeApiScript);
 
 function drawTvScreen(showPicture) {
   const { width, height } = tvCanvas;
@@ -465,7 +489,7 @@ function drawTvScreen(showPicture) {
 
 addBlock(0.42, 4.2, 7.6, tvBodyMaterial,
   [fireplaceFrontX - 0.21, house.floorHeight + 7.55, house.centerZ]);
-const tvScreen = new THREE.Mesh(new THREE.PlaneGeometry(6.95, 3.65), tvScreenMaterial);
+const tvScreen = new THREE.Mesh(new THREE.PlaneGeometry(6.95, 3.91), tvScreenMaterial);
 tvScreen.position.set(fireplaceFrontX - 0.44, house.floorHeight + 7.55, house.centerZ);
 tvScreen.rotation.y = -Math.PI / 2;
 scene.add(tvScreen);
@@ -477,6 +501,10 @@ function updateTv() {
   drawTvScreen(tvImageVisible);
   tvScreenMaterial.map = tvTexture;
   tvScreenMaterial.emissiveIntensity = tvPoweredOn ? 0.38 : 0.02;
+  if (youtubePlayer) {
+    if (tvImageVisible) youtubePlayer.playVideo();
+    else youtubePlayer.pauseVideo();
+  }
   remotePowerButton.setAttribute('aria-pressed', String(tvPoweredOn));
   remotePowerButton.dataset.powered = String(tvPoweredOn);
   remotePowerButton.querySelector('.power-label').textContent = tvPoweredOn ? 'ON' : 'OFF';
@@ -614,6 +642,34 @@ addFridgeBox(fridgeWidth - 0.35, 0.12, fridgeDepth - 0.45, fridgeShellMaterial, 
 addFridgeBox(fridgeWidth - 0.35, 0.12, fridgeDepth - 0.45, fridgeShellMaterial, [0, 4.45, -0.1]);
 addFridgeBox(fridgeWidth - 0.35, 2.08, 0.16, fridgeShellMaterial, [0, 5.17, fridgeDepth / 2 + 0.04]);
 
+const appleMaterial = new THREE.MeshStandardMaterial({ color: '#c83236', roughness: 0.38 });
+const grapeMaterial = new THREE.MeshStandardMaterial({ color: '#68a442', roughness: 0.42 });
+const blueberryMaterial = new THREE.MeshStandardMaterial({ color: '#344e9b', roughness: 0.36 });
+const fruitShelfY = 4.45 + 0.12 + 0.4;
+const apple = new THREE.Mesh(new THREE.SphereGeometry(0.42, 18, 14), appleMaterial);
+apple.scale.set(0.92, 1, 0.9);
+apple.position.set(-0.95, fruitShelfY, 0.35);
+fridgeRoot.add(apple);
+const appleStem = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.035, 0.045, 0.2, 7),
+  new THREE.MeshStandardMaterial({ color: '#49351f', roughness: 0.8 })
+);
+appleStem.position.set(-0.95, fruitShelfY + 0.42, 0.35);
+fridgeRoot.add(appleStem);
+for (const [x, y, z] of [
+  [-0.2, 0, 0.25], [0.08, 0.03, 0.25], [0.35, 0, 0.25],
+  [-0.06, 0.24, 0.28], [0.22, 0.25, 0.28], [0.08, 0.47, 0.3]
+]) {
+  const grape = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), grapeMaterial);
+  grape.position.set(x, fruitShelfY + y, z);
+  fridgeRoot.add(grape);
+}
+for (const [x, z] of [[0.7, 0.29], [0.95, 0.29], [1.2, 0.29], [0.82, 0.53], [1.07, 0.53]]) {
+  const blueberry = new THREE.Mesh(new THREE.SphereGeometry(0.19, 12, 10), blueberryMaterial);
+  blueberry.position.set(x, fruitShelfY, z);
+  fridgeRoot.add(blueberry);
+}
+
 const fridgeDoorPivot = new THREE.Group();
 fridgeDoorPivot.position.set(-fridgeWidth / 2 + 0.12, 0.18, fridgeDepth / 2 + 0.08);
 fridgeRoot.add(fridgeDoorPivot);
@@ -622,6 +678,39 @@ addFridgeBox(fridgeWidth - 0.3, 3.75, 0.2, fridgeShellMaterial,
 addFridgeBox(0.14, 0.9, 0.22, houseTrimMaterial,
   [fridgeWidth - 0.58, 2.03, 0.13], fridgeDoorPivot);
 let fridgeDoorOpen = false;
+
+const portraitFrameMaterial = new THREE.MeshStandardMaterial({ color: '#423126', roughness: 0.62 });
+const portraitFrameX = houseMaxX - 0.36;
+const portraitY = house.floorHeight + 7.8;
+const portraitZ = house.centerZ + 7.25;
+addBlock(0.2, 3.35, 3.35, portraitFrameMaterial, [portraitFrameX, portraitY, portraitZ]);
+const portraitTexture = new THREE.Texture();
+portraitTexture.colorSpace = THREE.SRGBColorSpace;
+const portraitMaterial = new THREE.MeshStandardMaterial({
+  color: '#ffffff',
+  emissive: '#ffffff',
+  emissiveIntensity: 0.08,
+  map: portraitTexture,
+  roughness: 0.72
+});
+const portrait = new THREE.Mesh(new THREE.PlaneGeometry(2.95, 2.95), portraitMaterial);
+portrait.position.set(portraitFrameX - 0.12, portraitY, portraitZ);
+portrait.rotation.y = -Math.PI / 2;
+scene.add(portrait);
+fetch('https://en.wikipedia.org/w/api.php?action=query&titles=MF_Doom&prop=pageimages&format=json&pithumbsize=600&origin=*')
+  .then((response) => response.json())
+  .then((data) => {
+    const imageUrl = Object.values(data.query.pages)[0]?.thumbnail?.source;
+    if (!imageUrl) return;
+    const portraitImage = new Image();
+    portraitImage.crossOrigin = 'anonymous';
+    portraitImage.onload = () => {
+      portraitTexture.image = portraitImage;
+      portraitTexture.needsUpdate = true;
+    };
+    portraitImage.src = imageUrl;
+  })
+  .catch(() => {});
 
 const fridgeInteractionPosition = new THREE.Vector3(
   fridgePosition.x,
@@ -813,11 +902,11 @@ const passwordIndex = [
     rank: 'Mediocre'
   },
   {
-    phrase: '',
+    phrase: 'rgbfruit',
     title: 'Mm..Food',
-    description: 'A picture on the television hides one last phrase.',
+    description: 'The first letters of the fridge fruits, read from left to right, reveal the code.',
     id: 'food',
-    rank: 'Obscure'
+    rank: 'Mediocre'
   }
 ];
 const passwordSecrets = new Map(passwordIndex.filter(({ phrase }) => phrase).map(({ phrase, id }) => [phrase, id]));
@@ -1075,7 +1164,7 @@ document.addEventListener('keydown', (event) => {
       setRemoteOpen(true);
     } else if (distanceToFridge <= 7) {
       fridgeDoorOpen = !fridgeDoorOpen;
-      fridgeDoorPivot.rotation.y = fridgeDoorOpen ? Math.PI / 2 : 0;
+      fridgeDoorPivot.rotation.y = fridgeDoorOpen ? -Math.PI / 2 : 0;
       showToast(fridgeDoorOpen ? 'Refrigerator opened' : 'Refrigerator closed');
     }
     return;
