@@ -593,6 +593,93 @@ kbd {
   font-size: 13px;
 }
 
+.world-settings {
+  display: grid;
+  gap: 14px;
+  max-width: 290px;
+  margin: 0 auto 22px;
+  text-align: left;
+}
+
+.time-setting {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.time-setting legend,
+.star-setting>span {
+  margin-bottom: 7px;
+  color: rgba(246, 245, 233, .76);
+  font: 9px var(--mono);
+  letter-spacing: .1em;
+}
+
+.time-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  border: 1px solid rgba(246, 245, 233, .24);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, .05);
+}
+
+.time-options label {
+  position: relative;
+  cursor: pointer;
+}
+
+.time-options input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.time-options span {
+  display: block;
+  padding: 8px;
+  border-radius: 2px;
+  color: rgba(246, 245, 233, .75);
+  font: 9px var(--mono);
+  text-align: center;
+}
+
+.time-options input:checked+span {
+  color: #17251a;
+  background: var(--leaf);
+}
+
+.time-options input:focus-visible+span {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.star-setting {
+  display: grid;
+  gap: 5px;
+}
+
+.star-setting[hidden] {
+  display: none;
+}
+
+.star-setting>span {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+}
+
+.star-setting output {
+  color: var(--leaf);
+}
+
+.star-setting input {
+  width: 100%;
+  accent-color: var(--leaf);
+}
+
 #enter-world {
   padding: 13px 18px;
   border: 0;

@@ -72,6 +72,19 @@
         <p class="eyebrow">A WORLD MADE FOR WANDERING</p>
         <h2 id="start-title">Some things are<br><em>better discovered.</em></h2>
         <p>Look around. Follow your curiosity. The first clue may be closer than it seems.</p>
+        <div class="world-settings">
+          <fieldset class="time-setting">
+            <legend>TIME OF DAY</legend>
+            <div class="time-options">
+              <label><input type="radio" name="time-of-day" value="day" checked><span>DAY</span></label>
+              <label><input type="radio" name="time-of-day" value="night"><span>NIGHT</span></label>
+            </div>
+          </fieldset>
+          <label id="star-setting" class="star-setting" for="star-count" hidden>
+            <span>STARS <output id="star-count-value" for="star-count">8</output></span>
+            <input id="star-count" type="range" min="1" max="15" value="8" step="1">
+          </label>
+        </div>
         <button id="enter-world" type="button">STEP INTO THE WORLD <span>→</span></button>
         <div class="start-controls">
           <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> WALK</span>

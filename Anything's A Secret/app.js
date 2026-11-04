@@ -4,6 +4,10 @@ const canvas = document.querySelector('#world');
 const startScreen = document.querySelector('#start-screen');
 const enterButton = document.querySelector('#enter-world');
 const startStatus = document.querySelector('#start-status');
+const timeOfDayInputs = document.querySelectorAll('input[name="time-of-day"]');
+const starSetting = document.querySelector('#star-setting');
+const starCountInput = document.querySelector('#star-count');
+const starCountValue = document.querySelector('#star-count-value');
 const mouseToggle = document.querySelector('#mouse-toggle');
 const mouseLabel = document.querySelector('#mouse-label');
 const passwordForm = document.querySelector('#password-form');
@@ -43,6 +47,9 @@ sun.shadow.camera.top = 42;
 sun.shadow.camera.bottom = -42;
 sun.shadow.normalBias = 0.03;
 scene.add(sun);
+
+const nightStars = new THREE.Group();
+scene.add(nightStars);
 
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(2000, 2000),
@@ -236,6 +243,34 @@ const sunWord = createWordSprite('sunc0d3', {
 sunWord.position.set(68, 34, -118.5);
 scene.add(sunWord);
 
+const moon = new THREE.Mesh(
+  new THREE.SphereGeometry(10, 32, 24),
+  new THREE.MeshBasicMaterial({ color: '#b9c3cf' })
+);
+moon.position.set(68, 34, -130);
+moon.visible = false;
+scene.add(moon);
+
+const moonWord = createWordSprite('FU11M00N', {
+  fillStyle: 'rgba(125, 139, 154, 0.58)',
+  font: '700 190px Georgia, serif',
+  opacity: 0.56,
+  scale: [14, 4.2, 1]
+});
+moonWord.position.set(68, 34, -118.5);
+moonWord.visible = false;
+scene.add(moonWord);
+
+const starGeometry = new THREE.SphereGeometry(0.8, 8, 6);
+const starMaterial = new THREE.MeshBasicMaterial({ color: '#f6f1d8' });
+for (let index = 0; index < 15; index += 1) {
+  const star = new THREE.Mesh(starGeometry, starMaterial);
+  star.position.set((random() - 0.5) * 520, 145 + random() * 155, (random() - 0.5) * 520);
+  star.scale.setScalar(0.55 + random() * 1.15);
+  star.visible = false;
+  nightStars.add(star);
+}
+
 for (const x of [-6.9, 6.9]) {
   const lantern = new THREE.PointLight('#ffdfa1', 11, 17, 2);
   lantern.position.set(x, 7.1, -11.4);
@@ -310,9 +345,72 @@ const passwordIndex = [
     description: 'The answer is baked into the bright side of the sky.',
     id: 'sunc0d3',
     rank: 'Mediocre'
+  },
+  {
+    phrase: '',
+    title: 'Star Count',
+    description: 'Count the stars in the night sky, then enter the number followed by ST4RS.',
+    id: 'stars',
+    rank: 'Difficult'
+  },
+  {
+    phrase: 'fu11m00n',
+    title: 'Full Moon',
+    description: 'A quiet message is written across the moon.',
+    id: 'fullmoon',
+    rank: 'Mediocre'
   }
 ];
-const passwordSecrets = new Map(passwordIndex.map(({ phrase, id }) => [phrase, id]));
+const passwordSecrets = new Map(passwordIndex.filter(({ phrase }) => phrase).map(({ phrase, id }) => [phrase, id]));
+let timeOfDay = 'day';
+let starCount = Number(starCountInput.value);
+let activeStarPhrase = null;
+
+function updateWorldSettings() {
+  const isNight = timeOfDay === 'night';
+  const starEntry = passwordIndex.find(({ id }) => id === 'stars');
+  if (activeStarPhrase) passwordSecrets.delete(activeStarPhrase);
+  starEntry.phrase = `${starCount}st4rs`;
+  activeStarPhrase = starEntry.phrase;
+  passwordSecrets.delete('fu11m00n');
+  if (isNight) {
+    passwordSecrets.set(starEntry.phrase, 'stars');
+    passwordSecrets.set('fu11m00n', 'fullmoon');
+  }
+
+  starSetting.hidden = !isNight;
+  starCountValue.value = String(starCount);
+  starCountValue.textContent = String(starCount);
+  scene.background.set(isNight ? '#09111d' : '#a9c5af');
+  scene.fog.color.set(isNight ? '#09111d' : '#a9c5af');
+  ambient.color.set(isNight ? '#63758e' : '#e8f4df');
+  ambient.groundColor.set(isNight ? '#20272b' : '#6a704a');
+  ambient.intensity = isNight ? 0.52 : 2.1;
+  sun.intensity = isNight ? 0 : 2.6;
+  ground.material.color.set(isNight ? '#1b2926' : '#78965e');
+  grassMaterial.color.set(isNight ? '#26352b' : '#79a252');
+  sunGlow.visible = !isNight;
+  sunWord.visible = !isNight;
+  moon.visible = isNight;
+  moonWord.visible = isNight;
+  nightStars.children.forEach((star, index) => {
+    star.visible = isNight && index < starCount;
+  });
+}
+
+for (const input of timeOfDayInputs) {
+  input.addEventListener('change', () => {
+    timeOfDay = input.value;
+    updateWorldSettings();
+  });
+}
+
+starCountInput.addEventListener('input', () => {
+  starCount = Number(starCountInput.value);
+  updateWorldSettings();
+});
+
+updateWorldSettings();
 
 function renderPasswordIndex(rank = activePasswordRank) {
   passwordList.replaceChildren();
