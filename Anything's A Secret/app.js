@@ -6,6 +6,13 @@ const enterButton = document.querySelector('#enter-world');
 const startStatus = document.querySelector('#start-status');
 const settingsPanel = document.querySelector('#settings-panel');
 const closeSettingsButton = document.querySelector('#close-settings');
+const remotePanel = document.querySelector('#remote-panel');
+const closeRemoteButton = document.querySelector('#remote-close');
+const remotePowerButton = document.querySelector('#tv-power');
+const remoteChannelDisplay = document.querySelector('#tv-channel-display');
+const remoteStatus = document.querySelector('#remote-status');
+const remoteKeypad = document.querySelector('#remote-keypad');
+const remoteTuneButton = document.querySelector('#remote-tune');
 const timeOfDayInputs = document.querySelectorAll('input[name="time-of-day"]');
 const mouseToggle = document.querySelector('#mouse-toggle');
 const mouseLabel = document.querySelector('#mouse-label');
@@ -346,10 +353,46 @@ const rightRoof = addBlock(roofLength, 0.62, house.depth + 1.8, houseRoofMateria
   [house.centerX + roofRun / 2, houseWallTop + roofRise / 2, house.centerZ]);
 rightRoof.rotation.z = -roofAngle;
 
-addBlock(4.4, 8.2, 4.2, new THREE.MeshStandardMaterial({ color: '#a84a40', roughness: 0.9 }),
-  [houseMaxX - 2.2, houseWallTop + 3.8, house.centerZ]);
+const chimneyMaterial = new THREE.MeshStandardMaterial({ color: '#a84a40', roughness: 0.9 });
+const fireplaceStone = new THREE.MeshStandardMaterial({ color: '#756e61', roughness: 0.9 });
+const fireplaceDark = new THREE.MeshStandardMaterial({ color: '#171716', roughness: 1 });
+const fireMaterial = new THREE.MeshStandardMaterial({
+  color: '#ff762f',
+  emissive: '#e33d12',
+  emissiveIntensity: 1.8,
+  roughness: 0.45
+});
+addBlock(2, 12.2, 10, chimneyMaterial,
+  [houseMaxX - 1.2, house.floorHeight + 6.1, house.centerZ]);
 addBlock(4.8, 0.38, 4.6, houseTrimMaterial,
-  [houseMaxX - 2.2, houseWallTop + 7.99, house.centerZ]);
+  [houseMaxX - 1.2, houseWallTop + 0.18, house.centerZ]);
+
+const fireplaceFrontX = houseMaxX - 2.25;
+addBlock(2.8, 0.52, 7.8, fireplaceStone,
+  [fireplaceFrontX - 0.5, house.floorHeight + 0.26, house.centerZ]);
+addBlock(0.7, 3.5, 0.72, fireplaceStone,
+  [fireplaceFrontX, house.floorHeight + 2.05, house.centerZ - 3.1]);
+addBlock(0.7, 3.5, 0.72, fireplaceStone,
+  [fireplaceFrontX, house.floorHeight + 2.05, house.centerZ + 3.1]);
+addBlock(0.75, 0.7, 7.1, fireplaceStone,
+  [fireplaceFrontX, house.floorHeight + 3.75, house.centerZ]);
+addBlock(0.22, 2.55, 5.55, fireplaceDark,
+  [fireplaceFrontX - 0.38, house.floorHeight + 2.08, house.centerZ], false);
+addBlock(2.7, 0.36, 8, houseTrimMaterial,
+  [fireplaceFrontX - 0.6, house.floorHeight + 4.28, house.centerZ]);
+
+const fireplaceFlames = new THREE.Group();
+fireplaceFlames.position.set(fireplaceFrontX - 0.53, house.floorHeight + 0.68, house.centerZ);
+for (const [z, scale] of [[-1.35, 0.78], [-0.55, 1], [0.35, 0.88], [1.25, 0.68]]) {
+  const flame = new THREE.Mesh(new THREE.ConeGeometry(0.42, 1.75, 7), fireMaterial);
+  flame.position.set(0, 0.92, z);
+  flame.scale.set(0.72, scale, 0.72);
+  fireplaceFlames.add(flame);
+}
+scene.add(fireplaceFlames);
+const fireplaceLight = new THREE.PointLight('#ff7537', 8, 15, 2);
+fireplaceLight.position.set(fireplaceFrontX - 1.4, house.floorHeight + 2, house.centerZ);
+scene.add(fireplaceLight);
 
 const doorFrameMaterial = new THREE.MeshStandardMaterial({ color: '#b83f3c', roughness: 0.75 });
 for (const z of [house.centerZ - 2.2, house.centerZ + 2.2]) {
@@ -365,14 +408,164 @@ scene.add(interiorLight);
 
 const tvBodyMaterial = new THREE.MeshStandardMaterial({ color: '#111820', roughness: 0.35, metalness: 0.3 });
 const tvScreenMaterial = new THREE.MeshStandardMaterial({
-  color: '#24465b',
-  emissive: '#143348',
-  emissiveIntensity: 0.55,
+  color: '#ffffff',
+  emissive: '#ffffff',
+  emissiveIntensity: 0.08,
   roughness: 0.22
 });
-addBlock(0.42, 4.2, 7.6, tvBodyMaterial, [houseMaxX - 1.25, house.floorHeight + 7.2, house.centerZ]);
-addBlock(0.08, 3.65, 6.95, tvScreenMaterial, [houseMaxX - 1.49, house.floorHeight + 7.2, house.centerZ]);
-addBlock(0.18, 0.8, 0.4, tvBodyMaterial, [houseMaxX - 1.5, house.floorHeight + 4.8, house.centerZ]);
+const tvCanvas = document.createElement('canvas');
+tvCanvas.width = 1024;
+tvCanvas.height = 576;
+const tvContext = tvCanvas.getContext('2d');
+const tvTexture = new THREE.CanvasTexture(tvCanvas);
+tvTexture.colorSpace = THREE.SRGBColorSpace;
+let tvPoweredOn = false;
+let tvChannel = '';
+let tvImageVisible = false;
+
+function drawTvScreen(showPicture) {
+  const { width, height } = tvCanvas;
+  tvContext.fillStyle = '#090d10';
+  tvContext.fillRect(0, 0, width, height);
+
+  if (showPicture) {
+    tvContext.fillStyle = '#344b50';
+    tvContext.fillRect(0, 0, width, height * 0.68);
+    tvContext.fillStyle = '#9b6849';
+    tvContext.fillRect(0, height * 0.68, width, height * 0.32);
+    tvContext.fillStyle = '#d5b78d';
+    tvContext.beginPath();
+    tvContext.ellipse(width * 0.5, height * 0.72, width * 0.28, height * 0.13, 0, 0, Math.PI * 2);
+    tvContext.fill();
+    tvContext.fillStyle = '#a64c27';
+    tvContext.beginPath();
+    tvContext.ellipse(width * 0.5, height * 0.69, width * 0.235, height * 0.105, 0, 0, Math.PI * 2);
+    tvContext.fill();
+    for (let index = 0; index < 38; index += 1) {
+      const x = width * (0.32 + ((index * 37) % 360) / 1000);
+      const y = height * (0.62 + ((index * 23) % 75) / 1000);
+      tvContext.fillStyle = ['#e5bf68', '#73914b', '#e3d59b', '#c95f38'][index % 4];
+      tvContext.beginPath();
+      tvContext.ellipse(x, y, 10 + (index % 4) * 2, 5 + (index % 3) * 2, index * 0.4, 0, Math.PI * 2);
+      tvContext.fill();
+    }
+    tvContext.fillStyle = 'rgba(255, 231, 184, 0.34)';
+    tvContext.fillRect(0, 0, width, height);
+    tvContext.fillStyle = 'rgba(20, 23, 18, 0.2)';
+    for (let y = 0; y < height; y += 5) tvContext.fillRect(0, y, width, 1);
+  } else {
+    tvContext.fillStyle = '#b6d2d7';
+    tvContext.font = '500 30px monospace';
+    tvContext.textAlign = 'center';
+    tvContext.fillText(tvPoweredOn ? (tvChannel ? 'NO SIGNAL' : 'ENTER CHANNEL') : '', width / 2, height / 2);
+  }
+
+  tvTexture.needsUpdate = true;
+}
+
+addBlock(0.42, 4.2, 7.6, tvBodyMaterial,
+  [fireplaceFrontX - 0.21, house.floorHeight + 7.55, house.centerZ]);
+const tvScreen = new THREE.Mesh(new THREE.PlaneGeometry(6.95, 3.65), tvScreenMaterial);
+tvScreen.position.set(fireplaceFrontX - 0.44, house.floorHeight + 7.55, house.centerZ);
+tvScreen.rotation.y = -Math.PI / 2;
+scene.add(tvScreen);
+
+drawTvScreen(false);
+
+function updateTv() {
+  tvImageVisible = tvPoweredOn && tvChannel === '10312020';
+  drawTvScreen(tvImageVisible);
+  tvScreenMaterial.map = tvTexture;
+  tvScreenMaterial.emissiveIntensity = tvPoweredOn ? 0.38 : 0.02;
+  remotePowerButton.setAttribute('aria-pressed', String(tvPoweredOn));
+  remotePowerButton.dataset.powered = String(tvPoweredOn);
+  remotePowerButton.querySelector('.power-label').textContent = tvPoweredOn ? 'ON' : 'OFF';
+}
+
+const remoteRoot = new THREE.Group();
+remoteRoot.position.set(house.centerX + 11, house.floorHeight + 2.12, house.centerZ + 3);
+scene.add(remoteRoot);
+const remoteBody = new THREE.Mesh(
+  new THREE.BoxGeometry(0.48, 0.2, 1.55),
+  new THREE.MeshStandardMaterial({ color: '#252a2b', roughness: 0.4 })
+);
+remoteBody.castShadow = true;
+remoteRoot.add(remoteBody);
+const remotePower = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.12, 0.12, 0.08, 12),
+  new THREE.MeshStandardMaterial({ color: '#d7483f', roughness: 0.42 })
+);
+remotePower.position.set(0, 0.14, -0.52);
+remoteRoot.add(remotePower);
+for (let row = 0; row < 3; row += 1) {
+  for (let column = 0; column < 3; column += 1) {
+    const key = new THREE.Mesh(
+      new THREE.BoxGeometry(0.09, 0.035, 0.09),
+      new THREE.MeshStandardMaterial({ color: '#c4c6bf', roughness: 0.48 })
+    );
+    key.position.set((column - 1) * 0.13, 0.12, -0.16 + row * 0.2);
+    remoteRoot.add(key);
+  }
+}
+const remoteInteractionPosition = remoteRoot.position.clone();
+remoteInteractionPosition.y += 0.2;
+let remoteReturnFocus = null;
+let channelEntry = '';
+
+function renderChannelEntry() {
+  remoteChannelDisplay.textContent = channelEntry || '------';
+}
+
+function setRemoteOpen(isOpen) {
+  if (isOpen) {
+    remoteReturnFocus = document.activeElement;
+    remotePanel.hidden = false;
+    keys.clear();
+    if (document.pointerLockElement === canvas) document.exitPointerLock();
+    renderChannelEntry();
+    remoteStatus.textContent = 'Enter a channel, then tune the television.';
+    remotePowerButton.focus();
+    return;
+  }
+
+  remotePanel.hidden = true;
+  keys.clear();
+  if (remoteReturnFocus instanceof HTMLElement && remoteReturnFocus.isConnected) remoteReturnFocus.focus();
+}
+
+remoteKeypad.addEventListener('click', (event) => {
+  const button = event.target.closest('button[data-digit]');
+  if (!button || channelEntry.length >= 12) return;
+  channelEntry += button.dataset.digit;
+  renderChannelEntry();
+});
+
+document.querySelector('#remote-clear').addEventListener('click', () => {
+  channelEntry = '';
+  renderChannelEntry();
+  remoteStatus.textContent = 'Channel cleared.';
+});
+
+remoteTuneButton.addEventListener('click', () => {
+  tvChannel = channelEntry;
+  updateTv();
+  remoteStatus.textContent = tvImageVisible
+    ? 'Channel 10312020: picture received.'
+    : tvChannel === '10312020'
+      ? 'Channel 10312020 is ready. Turn the television on.'
+      : 'No picture on this channel.';
+});
+
+remotePowerButton.addEventListener('click', () => {
+  tvPoweredOn = !tvPoweredOn;
+  updateTv();
+  remoteStatus.textContent = tvPoweredOn
+    ? (tvImageVisible ? 'Television on. Picture received.' : 'Television on.')
+    : 'Television off.';
+});
+
+closeRemoteButton.addEventListener('click', () => setRemoteOpen(false));
+updateTv();
 
 const sofaMaterial = new THREE.MeshStandardMaterial({ color: '#557660', roughness: 0.96 });
 const sofaCushionMaterial = new THREE.MeshStandardMaterial({ color: '#89a58c', roughness: 0.98 });
@@ -618,6 +811,13 @@ const passwordIndex = [
     description: 'A quiet message is written across the moon.',
     id: 'fullmoon',
     rank: 'Mediocre'
+  },
+  {
+    phrase: '',
+    title: 'Mm..Food',
+    description: 'A picture on the television hides one last phrase.',
+    id: 'food',
+    rank: 'Obscure'
   }
 ];
 const passwordSecrets = new Map(passwordIndex.filter(({ phrase }) => phrase).map(({ phrase, id }) => [phrase, id]));
@@ -826,7 +1026,21 @@ document.addEventListener('keydown', (event) => {
     return;
   }
 
+  if (event.code === 'Escape' && !remotePanel.hidden) {
+    event.preventDefault();
+    setRemoteOpen(false);
+    return;
+  }
+
   if (isTyping) return;
+
+  if (!remotePanel.hidden) {
+    if (event.code === 'KeyE') {
+      event.preventDefault();
+      setRemoteOpen(false);
+    }
+    return;
+  }
 
   if (event.code === 'Tab' && playing) {
     event.preventDefault();
@@ -849,11 +1063,17 @@ document.addEventListener('keydown', (event) => {
 
   if (event.code === 'KeyE') {
     event.preventDefault();
+    const distanceToRemote = Math.hypot(
+      player.position.x - remoteInteractionPosition.x,
+      player.position.z - remoteInteractionPosition.z
+    );
     const distanceToFridge = Math.hypot(
       player.position.x - fridgeInteractionPosition.x,
       player.position.z - fridgeInteractionPosition.z
     );
-    if (distanceToFridge <= 7) {
+    if (distanceToRemote <= 7) {
+      setRemoteOpen(true);
+    } else if (distanceToFridge <= 7) {
       fridgeDoorOpen = !fridgeDoorOpen;
       fridgeDoorPivot.rotation.y = fridgeDoorOpen ? Math.PI / 2 : 0;
       showToast(fridgeDoorOpen ? 'Refrigerator opened' : 'Refrigerator closed');
@@ -896,8 +1116,15 @@ passwordForm.addEventListener('submit', (event) => {
   event.preventDefault();
   const phrase = passwordInput.value.trim().toLowerCase();
   passwordInput.value = '';
+  const passwordId = passwordSecrets.get(phrase) ??
+    (phrase === 'mm..food' && tvImageVisible ? 'food' : null);
 
-  if (!passwordSecrets.has(phrase)) {
+  if (!passwordId) {
+    if (phrase === 'mm..food' && !tvImageVisible) {
+      passwordInput.setAttribute('aria-invalid', 'true');
+      passwordHint.textContent = 'The picture must be showing on the television first.';
+      return;
+    }
     passwordInput.setAttribute('aria-invalid', 'true');
     passwordHint.textContent = 'No match yet. Keep searching.';
     return;
@@ -905,7 +1132,6 @@ passwordForm.addEventListener('submit', (event) => {
 
   passwordInput.removeAttribute('aria-invalid');
   passwordHint.textContent = 'The world keeps what you type.';
-  const passwordId = passwordSecrets.get(phrase);
   if (unlockedPasswords.has(passwordId)) {
     showToast('Password already redeemed');
     return;

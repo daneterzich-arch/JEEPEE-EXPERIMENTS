@@ -36,6 +36,8 @@
       <kbd>SPACE</kbd><span>JUMP</span>
       <i></i>
       <kbd>F</kbd><span>LIGHT</span>
+      <i></i>
+      <kbd>E</kbd><span>INTERACT</span>
     </div>
 
     <button id="mouse-toggle" class="mouse-toggle" type="button" aria-pressed="false">
@@ -80,7 +82,7 @@
           <span><kbd>SPACE</kbd> JUMP</span>
           <span><kbd>;</kbd> FREE MOUSE</span>
           <span><kbd>F</kbd> FLASHLIGHT</span>
-          <span><kbd>E</kbd> FRIDGE DOOR</span>
+          <span><kbd>E</kbd> INTERACT</span>
         </div>
         <p id="start-status" class="start-status" role="status"></p>
       </div>
@@ -105,8 +107,42 @@
       </div>
     </section>
 
+    <section id="remote-panel" class="settings-panel" aria-labelledby="remote-title" aria-modal="true" role="dialog"
+      hidden>
+      <div class="settings-card remote-card">
+        <header class="settings-header">
+          <h2 id="remote-title">TELEVISION REMOTE</h2>
+          <button id="remote-close" class="settings-close" type="button" aria-label="Close remote">×</button>
+        </header>
+        <div class="remote-channel">
+          <span>CHANNEL</span>
+          <output id="tv-channel-display" aria-live="polite">------</output>
+        </div>
+        <button id="tv-power" class="remote-power" type="button" aria-label="Turn television on or off"
+          aria-pressed="false" data-powered="false">
+          <span class="power-icon" aria-hidden="true">⏻</span>
+          <span class="power-label">OFF</span>
+        </button>
+        <div id="remote-keypad" class="remote-keypad" aria-label="Channel keypad">
+          <button type="button" data-digit="1">1</button>
+          <button type="button" data-digit="2">2</button>
+          <button type="button" data-digit="3">3</button>
+          <button type="button" data-digit="4">4</button>
+          <button type="button" data-digit="5">5</button>
+          <button type="button" data-digit="6">6</button>
+          <button type="button" data-digit="7">7</button>
+          <button type="button" data-digit="8">8</button>
+          <button type="button" data-digit="9">9</button>
+          <button id="remote-clear" class="remote-clear" type="button">CLR</button>
+          <button type="button" data-digit="0">0</button>
+          <button id="remote-tune" class="remote-tune" type="button">ENTER</button>
+        </div>
+        <p id="remote-status" class="remote-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
     <footer class="bottom-note">
-      <span>WASD MOVE <i>·</i> SPACE JUMP <i>·</i> F LIGHT <i>·</i> E FRIDGE <i>·</i> ; MOUSE</span>
+      <span>WASD MOVE <i>·</i> SPACE JUMP <i>·</i> F LIGHT <i>·</i> E INTERACT <i>·</i> ; MOUSE</span>
       <span>YOU ARE HERE <b>●</b></span>
     </footer>
   </main>

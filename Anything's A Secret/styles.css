@@ -723,6 +723,102 @@ kbd {
   color: var(--leaf);
 }
 
+.remote-card {
+  width: min(360px, 100%);
+  padding: 21px;
+}
+
+.remote-channel {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  border: 1px solid rgba(246, 245, 233, .2);
+  border-radius: 3px;
+  background: #101714;
+  color: rgba(246, 245, 233, .67);
+  font: 9px var(--mono);
+  letter-spacing: .1em;
+}
+
+.remote-channel output {
+  color: var(--leaf);
+  font: 18px var(--mono);
+  letter-spacing: .08em;
+}
+
+.remote-power {
+  display: flex;
+  width: 100%;
+  min-height: 43px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-bottom: 13px;
+  border: 1px solid #e56c62;
+  border-radius: 3px;
+  color: white;
+  background: #a92f2c;
+  font: 500 10px var(--mono);
+  letter-spacing: .12em;
+}
+
+.remote-power:hover,
+.remote-power:focus-visible {
+  background: #c33c36;
+}
+
+.remote-power[data-powered="true"] {
+  border-color: #ec9c78;
+  background: #762d28;
+}
+
+.power-icon {
+  font-size: 19px;
+  line-height: 1;
+}
+
+.remote-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+
+.remote-keypad button {
+  min-height: 40px;
+  border: 1px solid rgba(246, 245, 233, .22);
+  border-radius: 3px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, .075);
+  font: 13px var(--mono);
+}
+
+.remote-keypad button:hover,
+.remote-keypad button:focus-visible {
+  border-color: var(--leaf);
+  background: rgba(198, 233, 160, .16);
+}
+
+.remote-keypad .remote-clear,
+.remote-keypad .remote-tune {
+  font-size: 9px;
+}
+
+.remote-keypad .remote-tune {
+  border-color: rgba(198, 233, 160, .65);
+  color: #17251a;
+  background: var(--leaf);
+}
+
+.remote-status {
+  min-height: 16px;
+  margin: 12px 0 0;
+  color: rgba(246, 245, 233, .7);
+  font: 9px/1.5 var(--mono);
+}
+
 #enter-world:hover {
   background: #d9f0c1;
 }
