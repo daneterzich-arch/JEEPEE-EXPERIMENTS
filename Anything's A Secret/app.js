@@ -308,7 +308,7 @@ camera.position.copy(player.position);
 camera.rotation.set(player.pitch, player.yaw, 0);
 
 const flashlightDirection = new THREE.Vector3();
-const flashlight = new THREE.SpotLight('#fff1d2', 95, 110, Math.PI / 7, 0.55, 1.6);
+const flashlight = new THREE.SpotLight('#fff1d2', 380, 110, Math.atan(2 * Math.tan(Math.PI / 7)), 0.55, 1.6);
 flashlight.visible = false;
 scene.add(flashlight, flashlight.target);
 
