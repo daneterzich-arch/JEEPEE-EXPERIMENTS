@@ -66,6 +66,20 @@ function seededRandom(seed) {
   };
 }
 
+const house = {
+  centerX: 75,
+  centerZ: 0,
+  width: 50,
+  depth: 50,
+  floorHeight: 0.28,
+  wallHeight: 12
+};
+const houseMinX = house.centerX - house.width / 2;
+const houseMaxX = house.centerX + house.width / 2;
+const houseMinZ = house.centerZ - house.depth / 2;
+const houseMaxZ = house.centerZ + house.depth / 2;
+const houseWallTop = house.floorHeight + house.wallHeight;
+
 const random = seededRandom(263701);
 const grassCount = 4200;
 const grassGeometry = new THREE.ConeGeometry(0.105, 0.58, 4);
@@ -82,7 +96,10 @@ for (let index = 0; index < grassCount; index += 1) {
   do {
     x = (random() - 0.5) * 390;
     z = (random() - 0.5) * 390;
-  } while (Math.abs(x) < 18 && Math.abs(z) < 18);
+  } while (
+    (Math.abs(x) < 18 && Math.abs(z) < 18) ||
+    (x > houseMinX - 2 && x < houseMaxX + 2 && z > houseMinZ - 2 && z < houseMaxZ + 2)
+  );
 
   grassTransform.position.set(x, -0.02, z);
   grassTransform.rotation.y = random() * Math.PI;
@@ -96,7 +113,7 @@ grass.receiveShadow = true;
 grass.instanceMatrix.needsUpdate = true;
 scene.add(grass);
 
-const platformTop = 1.42;
+const platformTop = 0.62;
 const platformWidth = 34;
 const stoneMaterial = new THREE.MeshStandardMaterial({ color: '#92928a', roughness: 0.93 });
 const stoneLight = new THREE.MeshStandardMaterial({ color: '#b2ada0', roughness: 0.88 });
@@ -118,33 +135,24 @@ function addBlock(width, height, depth, material, position, castShadow = true) {
   return block;
 }
 
-addBlock(platformWidth, 1.2, platformWidth, stoneDark, [0, 0.6, 0]);
-addBlock(platformWidth - 1.4, 0.24, platformWidth - 1.4, stoneMaterial, [0, 1.32, 0]);
+addBlock(36, 0.4, 36, stoneDark, [0, 0.2, 0]);
+addBlock(34, 0.22, 34, stoneLight, [0, 0.51, 0]);
 
-for (let xIndex = 0; xIndex < 6; xIndex += 1) {
-  for (let zIndex = 0; zIndex < 6; zIndex += 1) {
-    const x = (xIndex - 2.5) * 5.1;
-    const z = (zIndex - 2.5) * 5.1;
-    const isTrim = Math.abs(xIndex - 2.5) > 1.5 || Math.abs(zIndex - 2.5) > 1.5;
-    addBlock(4.95, 0.075, 4.95, isTrim ? stoneLight : stoneMaterial, [x, platformTop - 0.015, z], false);
-  }
+const spawnPlanterPositions = [[-12, -10], [12, -10], [-12, 10], [12, 10]];
+const planterMaterial = new THREE.MeshStandardMaterial({ color: '#596c58', roughness: 0.92 });
+const planterGreenery = new THREE.MeshStandardMaterial({ color: '#547b48', roughness: 1 });
+for (const [x, z] of spawnPlanterPositions) {
+  addBlock(4.5, 0.9, 4.5, planterMaterial, [x, platformTop + 0.45, z]);
+  const shrub = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), planterGreenery);
+  shrub.position.set(x, platformTop + 1.35, z);
+  shrub.scale.set(1.65, 0.82, 1.65);
+  shrub.castShadow = true;
+  shrub.receiveShadow = true;
+  scene.add(shrub);
 }
 
-const pillarPositions = [
-  [-13.2, -13.2],
-  [13.2, -13.2],
-  [-13.2, 13.2],
-  [13.2, 13.2]
-];
-const pillarHeight = 9.2;
-const pillarTop = platformTop + pillarHeight;
-
-for (const [x, z] of pillarPositions) {
-  addBlock(2.9, 0.55, 2.9, stoneDark, [x, platformTop + 0.26, z]);
-  addBlock(2.25, pillarHeight, 2.25, stoneMaterial, [x, platformTop + pillarHeight / 2, z]);
-  addBlock(2.7, 0.38, 2.7, stoneLight, [x, pillarTop, z]);
-  addBlock(2.5, 0.16, 2.5, stoneDark, [x, pillarTop + 0.27, z]);
-  addBlock(0.14, 0.26, 0.14, goldMaterial, [x, pillarTop + 0.5, z], false);
+for (const x of [22, 28, 34, 40, 46]) {
+  addBlock(5, 0.14, 6, stoneLight, [x, 0.07, 0], false);
 }
 
 const signCanvas = document.createElement('canvas');
@@ -172,15 +180,261 @@ signContext.fillText('EVERYTHING HAS A STORY', signCanvas.width / 2, 363);
 
 const signTexture = new THREE.CanvasTexture(signCanvas);
 signTexture.colorSpace = THREE.SRGBColorSpace;
-addBlock(13.3, 5.4, 0.55, stoneDark, [0, 6.5, -13.25]);
+addBlock(13.3, 4.8, 0.55, stoneDark, [0, 4, -13.25]);
 const signFace = new THREE.Mesh(
-  new THREE.PlaneGeometry(12.8, 4.9),
+  new THREE.PlaneGeometry(12.8, 4.4),
   new THREE.MeshBasicMaterial({ map: signTexture })
 );
-signFace.position.set(0, 6.5, -12.96);
+signFace.position.set(0, 4, -12.96);
 scene.add(signFace);
-addBlock(0.65, 3.1, 0.65, stoneLight, [-5.2, 3.05, -13.05]);
-addBlock(0.65, 3.1, 0.65, stoneLight, [5.2, 3.05, -13.05]);
+addBlock(0.65, 2, 0.65, stoneLight, [-5.2, 1.62, -13.05]);
+addBlock(0.65, 2, 0.65, stoneLight, [5.2, 1.62, -13.05]);
+
+const houseWallMaterial = new THREE.MeshStandardMaterial({ color: '#d1b58d', roughness: 0.88 });
+const houseTrimMaterial = new THREE.MeshStandardMaterial({ color: '#39271e', roughness: 0.72 });
+const houseRoofMaterial = new THREE.MeshStandardMaterial({ color: '#b8453d', roughness: 0.76 });
+const houseWindowMaterial = new THREE.MeshPhysicalMaterial({
+  color: '#a9d8ed',
+  transparent: true,
+  opacity: 0.25,
+  roughness: 0.2,
+  depthWrite: false,
+  side: THREE.DoubleSide
+});
+
+function addHouseWallPanel(axis, fixed, start, end, bottom, top) {
+  const length = end - start;
+  const height = top - bottom;
+  const thickness = 0.72;
+  const dimensions = axis === 'z'
+    ? [thickness, height, length]
+    : [length, height, thickness];
+  const position = axis === 'z'
+    ? [fixed, (bottom + top) / 2, (start + end) / 2]
+    : [(start + end) / 2, (bottom + top) / 2, fixed];
+  addBlock(...dimensions, houseWallMaterial, position);
+}
+
+function addHouseWall(axis, fixed, start, end, openings = []) {
+  const horizontalCuts = [start, end];
+  for (const opening of openings) {
+    horizontalCuts.push(opening.center - opening.width / 2, opening.center + opening.width / 2);
+  }
+  horizontalCuts.sort((left, right) => left - right);
+
+  const cuts = horizontalCuts.filter((value, index) => index === 0 || value - horizontalCuts[index - 1] > 0.001);
+  for (let index = 0; index < cuts.length - 1; index += 1) {
+    const segmentStart = Math.max(start, cuts[index]);
+    const segmentEnd = Math.min(end, cuts[index + 1]);
+    if (segmentEnd <= segmentStart) continue;
+
+    const segmentCenter = (segmentStart + segmentEnd) / 2;
+    const segmentOpenings = openings.filter((opening) =>
+      segmentCenter > opening.center - opening.width / 2 &&
+      segmentCenter < opening.center + opening.width / 2
+    );
+    const verticalCuts = [house.floorHeight, houseWallTop];
+    for (const opening of segmentOpenings) verticalCuts.push(opening.bottom, opening.top);
+    verticalCuts.sort((left, right) => left - right);
+
+    const uniqueVerticalCuts = verticalCuts.filter((value, cutIndex) =>
+      cutIndex === 0 || value - verticalCuts[cutIndex - 1] > 0.001
+    );
+    for (let cutIndex = 0; cutIndex < uniqueVerticalCuts.length - 1; cutIndex += 1) {
+      const bottom = uniqueVerticalCuts[cutIndex];
+      const top = uniqueVerticalCuts[cutIndex + 1];
+      const centerY = (bottom + top) / 2;
+      const isOpening = segmentOpenings.some((opening) => centerY > opening.bottom && centerY < opening.top);
+      if (!isOpening) addHouseWallPanel(axis, fixed, segmentStart, segmentEnd, bottom, top);
+    }
+  }
+}
+
+function addHouseWindow(axis, fixed, center, width, bottom, height) {
+  const centerY = bottom + height / 2;
+  const pane = new THREE.Mesh(new THREE.PlaneGeometry(width, height), houseWindowMaterial);
+  if (axis === 'z') {
+    pane.position.set(fixed, centerY, center);
+    pane.rotation.y = Math.PI / 2;
+    const frameX = fixed < house.centerX ? fixed - 0.42 : fixed + 0.42;
+    for (const y of [bottom - 0.16, bottom + height + 0.16, centerY]) {
+      addBlock(0.32, 0.3, width + 0.42, houseTrimMaterial, [frameX, y, center]);
+    }
+    for (const z of [center - width / 2 - 0.16, center + width / 2 + 0.16]) {
+      addBlock(0.32, height + 0.58, 0.32, houseTrimMaterial, [frameX, centerY, z]);
+    }
+  } else {
+    pane.position.set(center, centerY, fixed);
+    const frameZ = fixed < house.centerZ ? fixed - 0.42 : fixed + 0.42;
+    for (const y of [bottom - 0.16, bottom + height + 0.16, centerY]) {
+      addBlock(width + 0.42, 0.3, 0.32, houseTrimMaterial, [center, y, frameZ]);
+    }
+    for (const x of [center - width / 2 - 0.16, center + width / 2 + 0.16]) {
+      addBlock(0.32, height + 0.58, 0.32, houseTrimMaterial, [x, centerY, frameZ]);
+    }
+  }
+  pane.castShadow = false;
+  scene.add(pane);
+}
+
+const windowHeight = 4.5;
+const windowBottom = house.floorHeight + 4.1;
+const windowWidth = 6;
+const frontOpenings = [
+  { center: house.centerZ, width: 4, bottom: house.floorHeight, top: house.floorHeight + 7 },
+  ...[-13, 13].map((center) => ({
+    center,
+    width: windowWidth,
+    bottom: windowBottom,
+    top: windowBottom + windowHeight
+  }))
+];
+const backOpenings = [-13, 13].map((center) => ({
+  center,
+  width: windowWidth,
+  bottom: windowBottom,
+  top: windowBottom + windowHeight
+}));
+const sideOpenings = [-13, 13].map((center) => ({
+  center: house.centerX + center,
+  width: windowWidth,
+  bottom: windowBottom,
+  top: windowBottom + windowHeight
+}));
+
+addBlock(house.width - 1, 0.28, house.depth - 1,
+  new THREE.MeshStandardMaterial({ color: '#4e86a2', roughness: 0.82 }),
+  [house.centerX, house.floorHeight / 2, house.centerZ]);
+addHouseWall('z', houseMinX, houseMinZ, houseMaxZ, frontOpenings);
+addHouseWall('z', houseMaxX, houseMinZ, houseMaxZ, backOpenings);
+addHouseWall('x', houseMinZ, houseMinX, houseMaxX, sideOpenings);
+addHouseWall('x', houseMaxZ, houseMinX, houseMaxX, sideOpenings);
+
+for (const center of [-13, 13]) {
+  addHouseWindow('z', houseMinX, house.centerZ + center, windowWidth, windowBottom, windowHeight);
+  addHouseWindow('z', houseMaxX, house.centerZ + center, windowWidth, windowBottom, windowHeight);
+  addHouseWindow('x', houseMinZ, house.centerX + center, windowWidth, windowBottom, windowHeight);
+  addHouseWindow('x', houseMaxZ, house.centerX + center, windowWidth, windowBottom, windowHeight);
+}
+
+const gableShape = new THREE.Shape();
+gableShape.moveTo(0, 0);
+gableShape.lineTo(house.width, 0);
+gableShape.lineTo(house.width / 2, 4.5);
+gableShape.closePath();
+const gableGeometry = new THREE.ShapeGeometry(gableShape);
+for (const z of [houseMinZ - 0.37, houseMaxZ + 0.37]) {
+  const gable = new THREE.Mesh(gableGeometry, new THREE.MeshStandardMaterial({
+    color: '#d1b58d',
+    roughness: 0.88,
+    side: THREE.DoubleSide
+  }));
+  gable.position.set(houseMinX, houseWallTop, z);
+  gable.castShadow = true;
+  gable.receiveShadow = true;
+  scene.add(gable);
+}
+
+const roofRun = house.width / 2;
+const roofRise = 4.5;
+const roofAngle = Math.atan2(roofRise, roofRun);
+const roofLength = Math.hypot(roofRun, roofRise) + 1.2;
+const leftRoof = addBlock(roofLength, 0.62, house.depth + 1.8, houseRoofMaterial,
+  [house.centerX - roofRun / 2, houseWallTop + roofRise / 2, house.centerZ]);
+leftRoof.rotation.z = roofAngle;
+const rightRoof = addBlock(roofLength, 0.62, house.depth + 1.8, houseRoofMaterial,
+  [house.centerX + roofRun / 2, houseWallTop + roofRise / 2, house.centerZ]);
+rightRoof.rotation.z = -roofAngle;
+
+addBlock(4.4, 8.2, 4.2, new THREE.MeshStandardMaterial({ color: '#a84a40', roughness: 0.9 }),
+  [houseMaxX - 2.2, houseWallTop + 3.8, house.centerZ]);
+addBlock(4.8, 0.38, 4.6, houseTrimMaterial,
+  [houseMaxX - 2.2, houseWallTop + 7.99, house.centerZ]);
+
+const doorFrameMaterial = new THREE.MeshStandardMaterial({ color: '#b83f3c', roughness: 0.75 });
+for (const z of [house.centerZ - 2.2, house.centerZ + 2.2]) {
+  addBlock(0.42, 7.25, 0.42, doorFrameMaterial, [houseMinX - 0.48, house.floorHeight + 3.55, z]);
+}
+addBlock(0.42, 0.42, 4.8, doorFrameMaterial,
+  [houseMinX - 0.48, house.floorHeight + 7.2, house.centerZ]);
+addBlock(2, 0.2, 6, stoneLight, [houseMinX - 1.1, 0.1, house.centerZ], false);
+
+const interiorLight = new THREE.PointLight('#ffe2b6', 45, 62, 1.5);
+interiorLight.position.set(house.centerX, house.floorHeight + 9.4, house.centerZ);
+scene.add(interiorLight);
+
+const tvBodyMaterial = new THREE.MeshStandardMaterial({ color: '#111820', roughness: 0.35, metalness: 0.3 });
+const tvScreenMaterial = new THREE.MeshStandardMaterial({
+  color: '#24465b',
+  emissive: '#143348',
+  emissiveIntensity: 0.55,
+  roughness: 0.22
+});
+addBlock(0.42, 4.2, 7.6, tvBodyMaterial, [houseMaxX - 1.25, house.floorHeight + 7.2, house.centerZ]);
+addBlock(0.08, 3.65, 6.95, tvScreenMaterial, [houseMaxX - 1.49, house.floorHeight + 7.2, house.centerZ]);
+addBlock(0.18, 0.8, 0.4, tvBodyMaterial, [houseMaxX - 1.5, house.floorHeight + 4.8, house.centerZ]);
+
+const sofaMaterial = new THREE.MeshStandardMaterial({ color: '#557660', roughness: 0.96 });
+const sofaCushionMaterial = new THREE.MeshStandardMaterial({ color: '#89a58c', roughness: 0.98 });
+addBlock(5.2, 1.15, 11, sofaMaterial, [house.centerX + 1, house.floorHeight + 0.95, house.centerZ + 3]);
+addBlock(1.25, 2.5, 11, sofaMaterial, [house.centerX - 1.45, house.floorHeight + 2.1, house.centerZ + 3]);
+for (const z of [house.centerZ - 2.65, house.centerZ + 8.65]) {
+  addBlock(5.2, 1.8, 0.9, sofaMaterial, [house.centerX + 1, house.floorHeight + 1.45, z]);
+}
+for (const z of [house.centerZ + 0.5, house.centerZ + 5.5]) {
+  addBlock(3.6, 0.38, 4.2, sofaCushionMaterial, [house.centerX + 1.5, house.floorHeight + 1.72, z]);
+}
+
+const tableMaterial = new THREE.MeshStandardMaterial({ color: '#79543c', roughness: 0.72 });
+addBlock(3.6, 0.3, 6.8, tableMaterial, [house.centerX + 11, house.floorHeight + 1.8, house.centerZ + 3]);
+for (const x of [house.centerX + 9.6, house.centerX + 12.4]) {
+  for (const z of [house.centerZ + 0.5, house.centerZ + 5.5]) {
+    addBlock(0.24, 1.65, 0.24, tableMaterial, [x, house.floorHeight + 0.84, z]);
+  }
+}
+
+const fridgeWidth = 3.6;
+const fridgeHeight = 6.25;
+const fridgeDepth = 3.7;
+const fridgePosition = new THREE.Vector3(house.centerX - 10, house.floorHeight, house.centerZ - 21.5);
+const fridgeRoot = new THREE.Group();
+fridgeRoot.position.copy(fridgePosition);
+scene.add(fridgeRoot);
+const fridgeShellMaterial = new THREE.MeshStandardMaterial({ color: '#d8dfe0', roughness: 0.38, metalness: 0.16 });
+const fridgeInteriorMaterial = new THREE.MeshStandardMaterial({ color: '#69777a', roughness: 0.9 });
+function addFridgeBox(width, height, depth, material, position, parent = fridgeRoot) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
+  mesh.position.set(...position);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  parent.add(mesh);
+  return mesh;
+}
+
+addFridgeBox(fridgeWidth - 0.2, fridgeHeight - 0.2, 0.18, fridgeInteriorMaterial,
+  [0, fridgeHeight / 2, -fridgeDepth / 2 + 0.12]);
+addFridgeBox(0.22, fridgeHeight, fridgeDepth, fridgeShellMaterial, [-fridgeWidth / 2 + 0.11, fridgeHeight / 2, 0]);
+addFridgeBox(0.22, fridgeHeight, fridgeDepth, fridgeShellMaterial, [fridgeWidth / 2 - 0.11, fridgeHeight / 2, 0]);
+addFridgeBox(fridgeWidth, 0.22, fridgeDepth, fridgeShellMaterial, [0, 0.11, 0]);
+addFridgeBox(fridgeWidth, 0.22, fridgeDepth, fridgeShellMaterial, [0, fridgeHeight - 0.11, 0]);
+addFridgeBox(fridgeWidth - 0.35, 0.12, fridgeDepth - 0.45, fridgeShellMaterial, [0, 4.05, -0.1]);
+addFridgeBox(fridgeWidth - 0.35, 0.12, fridgeDepth - 0.45, fridgeShellMaterial, [0, 4.45, -0.1]);
+addFridgeBox(fridgeWidth - 0.35, 2.08, 0.16, fridgeShellMaterial, [0, 5.17, fridgeDepth / 2 + 0.04]);
+
+const fridgeDoorPivot = new THREE.Group();
+fridgeDoorPivot.position.set(-fridgeWidth / 2 + 0.12, 0.18, fridgeDepth / 2 + 0.08);
+fridgeRoot.add(fridgeDoorPivot);
+addFridgeBox(fridgeWidth - 0.3, 3.75, 0.2, fridgeShellMaterial,
+  [(fridgeWidth - 0.3) / 2, 2.03, 0], fridgeDoorPivot);
+addFridgeBox(0.14, 0.9, 0.22, houseTrimMaterial,
+  [fridgeWidth - 0.58, 2.03, 0.13], fridgeDoorPivot);
+let fridgeDoorOpen = false;
+
+const fridgeInteractionPosition = new THREE.Vector3(
+  fridgePosition.x,
+  fridgePosition.y + fridgeHeight / 2,
+  fridgePosition.z + fridgeDepth / 2 + 1
+);
 
 function createWordSprite(text, options = {}) {
   const {
@@ -593,6 +847,20 @@ document.addEventListener('keydown', (event) => {
     return;
   }
 
+  if (event.code === 'KeyE') {
+    event.preventDefault();
+    const distanceToFridge = Math.hypot(
+      player.position.x - fridgeInteractionPosition.x,
+      player.position.z - fridgeInteractionPosition.z
+    );
+    if (distanceToFridge <= 7) {
+      fridgeDoorOpen = !fridgeDoorOpen;
+      fridgeDoorPivot.rotation.y = fridgeDoorOpen ? Math.PI / 2 : 0;
+      showToast(fridgeDoorOpen ? 'Refrigerator opened' : 'Refrigerator closed');
+    }
+    return;
+  }
+
   if (event.code === 'Semicolon') {
     event.preventDefault();
     if (document.pointerLockElement === canvas) {
@@ -655,18 +923,28 @@ passwordInput.addEventListener('input', () => {
 });
 
 function groundHeightAt(x, z) {
+  const insideHouse = x > houseMinX && x < houseMaxX && z > houseMinZ && z < houseMaxZ;
+  if (insideHouse) return house.floorHeight;
+
   const platformHalfWidth = platformWidth / 2 - 0.18;
   return Math.abs(x) < platformHalfWidth && Math.abs(z) < platformHalfWidth ? platformTop : 0;
 }
 
-function collidesWithPillar(x, z) {
-  const pillarCollision = pillarPositions.some(([pillarX, pillarZ]) =>
-    Math.abs(x - pillarX) < 1.75 && Math.abs(z - pillarZ) < 1.75
+function collidesWithStructure(x, z) {
+  const planterCollision = spawnPlanterPositions.some(([planterX, planterZ]) =>
+    Math.abs(x - planterX) < 2.45 && Math.abs(z - planterZ) < 2.45
   );
   const feetHeight = player.position.y - eyeHeight;
   const overlapsSignHeight = feetHeight < 6.5 + 2.7 && feetHeight + player.height > 6.5 - 2.7;
   const signCollision = overlapsSignHeight && Math.abs(x) < 7.1 && Math.abs(z + 13.25) < 0.9;
-  return pillarCollision || signCollision;
+  const overlapsHouse = x > houseMinX - 0.6 && x < houseMaxX + 0.6 &&
+    z > houseMinZ - 0.6 && z < houseMaxZ + 0.6;
+  const westWall = overlapsHouse && x > houseMinX - 0.6 && x < houseMinX + 0.6 &&
+    Math.abs(z - house.centerZ) >= 1.4;
+  const eastWall = overlapsHouse && x > houseMaxX - 0.6 && x < houseMaxX + 0.6;
+  const northWall = overlapsHouse && z > houseMinZ - 0.6 && z < houseMinZ + 0.6;
+  const southWall = overlapsHouse && z > houseMaxZ - 0.6 && z < houseMaxZ + 0.6;
+  return planterCollision || signCollision || westWall || eastWall || northWall || southWall;
 }
 
 function canReachGroundAt(x, z) {
@@ -709,13 +987,13 @@ function animate(now) {
       const boundedZ = THREE.MathUtils.clamp(nextZ, -998, 998);
 
       if (
-        !collidesWithPillar(boundedX, player.position.z) &&
+        !collidesWithStructure(boundedX, player.position.z) &&
         canReachGroundAt(boundedX, player.position.z)
       ) {
         player.position.x = boundedX;
       }
       if (
-        !collidesWithPillar(player.position.x, boundedZ) &&
+        !collidesWithStructure(player.position.x, boundedZ) &&
         canReachGroundAt(player.position.x, boundedZ)
       ) {
         player.position.z = boundedZ;
