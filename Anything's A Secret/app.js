@@ -4,6 +4,10 @@ const canvas = document.querySelector('#world');
 const startScreen = document.querySelector('#start-screen');
 const enterButton = document.querySelector('#enter-world');
 const startStatus = document.querySelector('#start-status');
+const settingsPanel = document.querySelector('#settings-panel');
+const settingsToggle = document.querySelector('#settings-toggle');
+const openSettingsButton = document.querySelector('#open-settings');
+const closeSettingsButton = document.querySelector('#close-settings');
 const timeOfDayInputs = document.querySelectorAll('input[name="time-of-day"]');
 const starSetting = document.querySelector('#star-setting');
 const starCountInput = document.querySelector('#star-count');
@@ -513,6 +517,34 @@ function showMouseCaptureError() {
   }
 }
 
+let settingsReturnFocus = null;
+
+function setSettingsOpen(isOpen) {
+  if (isOpen) {
+    settingsReturnFocus = document.activeElement;
+    settingsPanel.hidden = false;
+    settingsToggle.setAttribute('aria-expanded', 'true');
+    keys.clear();
+    if (document.pointerLockElement === canvas) document.exitPointerLock();
+    closeSettingsButton.focus();
+    return;
+  }
+
+  settingsPanel.hidden = true;
+  settingsToggle.setAttribute('aria-expanded', 'false');
+  if (settingsReturnFocus instanceof HTMLElement && settingsReturnFocus.isConnected) {
+    settingsReturnFocus.focus();
+  }
+}
+
+function toggleSettings() {
+  setSettingsOpen(settingsPanel.hidden);
+}
+
+settingsToggle.addEventListener('click', toggleSettings);
+openSettingsButton.addEventListener('click', toggleSettings);
+closeSettingsButton.addEventListener('click', () => setSettingsOpen(false));
+
 enterButton.addEventListener('click', () => {
   playing = true;
   startScreen.classList.add('is-hidden');
@@ -546,7 +578,21 @@ document.addEventListener('keydown', (event) => {
   const isTyping = target instanceof HTMLElement &&
     (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
 
-  if (isTyping || !playing) return;
+  if (event.code === 'Escape' && !settingsPanel.hidden) {
+    event.preventDefault();
+    setSettingsOpen(false);
+    return;
+  }
+
+  if (isTyping) return;
+
+  if (event.code === 'Tab' && playing) {
+    event.preventDefault();
+    toggleSettings();
+    return;
+  }
+
+  if (!playing) return;
 
   if (event.code === 'Semicolon') {
     event.preventDefault();

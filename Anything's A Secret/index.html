@@ -17,6 +17,8 @@
     <header class="topbar">
       <a class="back-link" href="../">DT / PROJECTS</a>
       <p class="world-status"><span></span> THE WORLD IS QUIET</p>
+      <button id="settings-toggle" class="settings-toggle" type="button" aria-expanded="false"
+        aria-controls="settings-panel">SETTINGS <kbd>TAB</kbd></button>
     </header>
 
     <section class="world-heading" aria-label="Game title">
@@ -72,6 +74,24 @@
         <p class="eyebrow">A WORLD MADE FOR WANDERING</p>
         <h2 id="start-title">Some things are<br><em>better discovered.</em></h2>
         <p>Look around. Follow your curiosity. The first clue may be closer than it seems.</p>
+        <button id="open-settings" class="settings-open-button" type="button">WORLD SETTINGS</button>
+        <button id="enter-world" type="button">STEP INTO THE WORLD <span>→</span></button>
+        <div class="start-controls">
+          <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> WALK</span>
+          <span><kbd>SPACE</kbd> JUMP</span>
+          <span><kbd>;</kbd> FREE MOUSE</span>
+        </div>
+        <p id="start-status" class="start-status" role="status"></p>
+      </div>
+    </section>
+
+    <section id="settings-panel" class="settings-panel" aria-labelledby="settings-title" aria-modal="true" role="dialog"
+      hidden>
+      <div class="settings-card">
+        <header class="settings-header">
+          <h2 id="settings-title">WORLD SETTINGS</h2>
+          <button id="close-settings" class="settings-close" type="button" aria-label="Close settings">×</button>
+        </header>
         <div class="world-settings">
           <fieldset class="time-setting">
             <legend>TIME OF DAY</legend>
@@ -85,13 +105,6 @@
             <input id="star-count" type="range" min="1" max="15" value="8" step="1">
           </label>
         </div>
-        <button id="enter-world" type="button">STEP INTO THE WORLD <span>→</span></button>
-        <div class="start-controls">
-          <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> WALK</span>
-          <span><kbd>SPACE</kbd> JUMP</span>
-          <span><kbd>;</kbd> FREE MOUSE</span>
-        </div>
-        <p id="start-status" class="start-status" role="status"></p>
       </div>
     </section>
 
