@@ -402,9 +402,29 @@ addBlock(0.42, 0.42, 4.8, doorFrameMaterial,
   [houseMinX - 0.48, house.floorHeight + 7.2, house.centerZ]);
 addBlock(2, 0.2, 6, stoneLight, [houseMinX - 1.1, 0.1, house.centerZ], false);
 
-const interiorLight = new THREE.PointLight('#ffe2b6', 45, 62, 1.5);
-interiorLight.position.set(house.centerX, house.floorHeight + 9.4, house.centerZ);
-scene.add(interiorLight);
+const ceilingFixtureMaterial = new THREE.MeshStandardMaterial({
+  color: '#d8c49a',
+  emissive: '#f7d9a1',
+  emissiveIntensity: 0.35,
+  roughness: 0.58
+});
+const ceilingBulbMaterial = new THREE.MeshBasicMaterial({ color: '#fff1d2' });
+for (const [offsetX, offsetZ] of [[-14, -14], [14, -14], [-14, 14], [14, 14]]) {
+  const fixtureX = house.centerX + offsetX;
+  const fixtureY = house.floorHeight + 10.2;
+  const fixtureZ = house.centerZ + offsetZ;
+  const fixture = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.6, 0.16, 16), ceilingFixtureMaterial);
+  fixture.position.set(fixtureX, fixtureY + 0.12, fixtureZ);
+  scene.add(fixture);
+
+  const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.17, 12, 10), ceilingBulbMaterial);
+  bulb.position.set(fixtureX, fixtureY - 0.08, fixtureZ);
+  scene.add(bulb);
+
+  const interiorLight = new THREE.PointLight('#ffe2b6', 22, 36, 1.5);
+  interiorLight.position.set(fixtureX, fixtureY - 0.18, fixtureZ);
+  scene.add(interiorLight);
+}
 
 const tvBodyMaterial = new THREE.MeshStandardMaterial({ color: '#111820', roughness: 0.35, metalness: 0.3 });
 const tvScreenMaterial = new THREE.MeshStandardMaterial({
@@ -489,8 +509,8 @@ function drawTvScreen(showPicture) {
 
 addBlock(0.42, 4.2, 7.6, tvBodyMaterial,
   [fireplaceFrontX - 0.21, house.floorHeight + 7.55, house.centerZ]);
-const tvScreen = new THREE.Mesh(new THREE.PlaneGeometry(6.95, 3.91), tvScreenMaterial);
-tvScreen.position.set(fireplaceFrontX - 0.44, house.floorHeight + 7.55, house.centerZ);
+const tvScreen = new THREE.Mesh(new THREE.PlaneGeometry(6.5, 3.65), tvScreenMaterial);
+tvScreen.position.set(fireplaceFrontX - 0.5, house.floorHeight + 7.55, house.centerZ);
 tvScreen.rotation.y = -Math.PI / 2;
 scene.add(tvScreen);
 
@@ -899,11 +919,18 @@ const passwordIndex = [
     rank: 'Mediocre'
   },
   {
-    phrase: 'rgbfruit',
+    phrase: 'mm..food',
     title: 'Mm.. Food',
-    description: 'The first letters of the fridge fruits, read from left to right, reveal the code.',
+    description: 'Tune channel 10312020 and turn on the television to unlock this secret.',
     id: 'food',
     rank: 'Obscure'
+  },
+  {
+    phrase: 'rgbfruit',
+    title: 'RGB Fruit',
+    description: 'The first letters of the fridge fruits, read from left to right, reveal the code.',
+    id: 'rgbfruit',
+    rank: 'Difficult'
   }
 ];
 const passwordSecrets = new Map(passwordIndex.filter(({ phrase }) => phrase).map(({ phrase, id }) => [phrase, id]));
@@ -1101,6 +1128,13 @@ document.addEventListener('mousemove', (event) => {
   player.pitch = THREE.MathUtils.clamp(player.pitch - event.movementY * 0.0022, -1.35, 1.35);
 });
 
+document.addEventListener('wheel', (event) => {
+  if (!playing || !settingsPanel.hidden || !remotePanel.hidden) return;
+  event.preventDefault();
+  camera.zoom = THREE.MathUtils.clamp(camera.zoom * Math.exp(-event.deltaY * 0.001), 1, 50);
+  camera.updateProjectionMatrix();
+}, { passive: false });
+
 document.addEventListener('keydown', (event) => {
   const target = event.target;
   const isTyping = target instanceof HTMLElement &&
@@ -1200,17 +1234,17 @@ canvas.addEventListener('click', () => {
 
 passwordForm.addEventListener('submit', (event) => {
   event.preventDefault();
-  const phrase = passwordInput.value.trim().toLowerCase();
+  const phrase = passwordInput.value.trim().toLowerCase().replace(/\s+/g, '');
   passwordInput.value = '';
-  const passwordId = passwordSecrets.get(phrase) ??
-    (phrase === 'mm..food' && tvImageVisible ? 'food' : null);
+  const passwordId = passwordSecrets.get(phrase);
+
+  if (passwordId === 'food' && !tvImageVisible) {
+    passwordInput.setAttribute('aria-invalid', 'true');
+    passwordHint.textContent = 'The picture must be showing on the television first.';
+    return;
+  }
 
   if (!passwordId) {
-    if (phrase === 'mm..food' && !tvImageVisible) {
-      passwordInput.setAttribute('aria-invalid', 'true');
-      passwordHint.textContent = 'The picture must be showing on the television first.';
-      return;
-    }
     passwordInput.setAttribute('aria-invalid', 'true');
     passwordHint.textContent = 'No match yet. Keep searching.';
     return;
