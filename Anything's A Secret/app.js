@@ -644,30 +644,43 @@ addFridgeBox(fridgeWidth - 0.35, 2.08, 0.16, fridgeShellMaterial, [0, 5.17, frid
 
 const appleMaterial = new THREE.MeshStandardMaterial({ color: '#c83236', roughness: 0.38 });
 const grapeMaterial = new THREE.MeshStandardMaterial({ color: '#68a442', roughness: 0.42 });
-const blueberryMaterial = new THREE.MeshStandardMaterial({ color: '#344e9b', roughness: 0.36 });
+const strawberryMaterial = new THREE.MeshStandardMaterial({ color: '#355dc3', roughness: 0.38 });
+const strawberrySeedMaterial = new THREE.MeshStandardMaterial({ color: '#a9d8e8', roughness: 0.46 });
+const strawberryLeafMaterial = new THREE.MeshStandardMaterial({ color: '#477c3d', roughness: 0.55 });
 const fruitShelfY = 4.45 + 0.12 + 0.4;
 const apple = new THREE.Mesh(new THREE.SphereGeometry(0.42, 18, 14), appleMaterial);
 apple.scale.set(0.92, 1, 0.9);
-apple.position.set(-0.95, fruitShelfY, 0.35);
+apple.position.set(-1.05, fruitShelfY, 0.35);
 fridgeRoot.add(apple);
 const appleStem = new THREE.Mesh(
   new THREE.CylinderGeometry(0.035, 0.045, 0.2, 7),
   new THREE.MeshStandardMaterial({ color: '#49351f', roughness: 0.8 })
 );
-appleStem.position.set(-0.95, fruitShelfY + 0.42, 0.35);
+appleStem.position.set(-1.05, fruitShelfY + 0.42, 0.35);
 fridgeRoot.add(appleStem);
 for (const [x, y, z] of [
-  [-0.2, 0, 0.25], [0.08, 0.03, 0.25], [0.35, 0, 0.25],
-  [-0.06, 0.24, 0.28], [0.22, 0.25, 0.28], [0.08, 0.47, 0.3]
+  [-0.31, 0, 0.25], [-0.03, 0.03, 0.25], [0.25, 0, 0.25],
+  [-0.17, 0.24, 0.28], [0.11, 0.25, 0.28], [-0.03, 0.47, 0.3]
 ]) {
   const grape = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), grapeMaterial);
   grape.position.set(x, fruitShelfY + y, z);
   fridgeRoot.add(grape);
 }
-for (const [x, z] of [[0.7, 0.29], [0.95, 0.29], [1.2, 0.29], [0.82, 0.53], [1.07, 0.53]]) {
-  const blueberry = new THREE.Mesh(new THREE.SphereGeometry(0.19, 12, 10), blueberryMaterial);
-  blueberry.position.set(x, fruitShelfY, z);
-  fridgeRoot.add(blueberry);
+for (const [x, z] of [[0.92, 0.32], [1.3, 0.32]]) {
+  const strawberry = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.62, 12), strawberryMaterial);
+  strawberry.rotation.z = Math.PI;
+  strawberry.position.set(x, fruitShelfY + 0.31, z);
+  fridgeRoot.add(strawberry);
+
+  const leaves = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.12, 7), strawberryLeafMaterial);
+  leaves.position.set(x, fruitShelfY + 0.57, z);
+  fridgeRoot.add(leaves);
+
+  for (const [seedX, seedY] of [[-0.1, 0.13], [0.08, 0.08], [-0.02, -0.02], [0.12, -0.12]]) {
+    const seed = new THREE.Mesh(new THREE.SphereGeometry(0.025, 6, 5), strawberrySeedMaterial);
+    seed.position.set(x + seedX, fruitShelfY + 0.31 + seedY, z + 0.17);
+    fridgeRoot.add(seed);
+  }
 }
 
 const fridgeDoorPivot = new THREE.Group();
@@ -752,15 +765,6 @@ function createWordSprite(text, options = {}) {
   sprite.scale.set(...scale);
   return sprite;
 }
-
-const easyWorldWord = createWordSprite("ANYTHING'S A SECRET", {
-  fillStyle: '#f4ecce',
-  font: '700 180px Georgia, serif',
-  opacity: 0.95,
-  scale: [24, 5.2, 1]
-});
-easyWorldWord.position.set(28, 4.2, 18.5);
-scene.add(easyWorldWord);
 
 const sunGlow = new THREE.Mesh(
   new THREE.SphereGeometry(11.5, 36, 36),
@@ -867,13 +871,6 @@ const passwordIndex = [
     rank: 'Surface'
   },
   {
-    phrase: "anything's a secret",
-    title: 'The Rule of the World',
-    description: 'The name of this place is also a key.',
-    id: 'title',
-    rank: 'Easy'
-  },
-  {
     phrase: 'welcome',
     title: 'A Warm Welcome',
     description: 'Every journey begins by arriving.',
@@ -883,7 +880,7 @@ const passwordIndex = [
   {
     phrase: 'sunc0d3',
     title: 'Sunlit Cipher',
-    description: 'The answer is baked into the bright side of the sky.',
+    description: 'Brighter than the sun.',
     id: 'sunc0d3',
     rank: 'Mediocre'
   },
@@ -903,10 +900,10 @@ const passwordIndex = [
   },
   {
     phrase: 'rgbfruit',
-    title: 'Mm..Food',
+    title: 'Mm.. Food',
     description: 'The first letters of the fridge fruits, read from left to right, reveal the code.',
     id: 'food',
-    rank: 'Mediocre'
+    rank: 'Obscure'
   }
 ];
 const passwordSecrets = new Map(passwordIndex.filter(({ phrase }) => phrase).map(({ phrase, id }) => [phrase, id]));
