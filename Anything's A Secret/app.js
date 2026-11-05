@@ -658,49 +658,51 @@ addFridgeBox(0.22, fridgeHeight, fridgeDepth, fridgeShellMaterial, [-fridgeWidth
 addFridgeBox(0.22, fridgeHeight, fridgeDepth, fridgeShellMaterial, [fridgeWidth / 2 - 0.11, fridgeHeight / 2, 0]);
 addFridgeBox(fridgeWidth, 0.22, fridgeDepth, fridgeShellMaterial, [0, 0.11, 0]);
 addFridgeBox(fridgeWidth, 0.22, fridgeDepth, fridgeShellMaterial, [0, fridgeHeight - 0.11, 0]);
-addFridgeBox(fridgeWidth - 0.35, 0.12, fridgeDepth - 0.45, fridgeShellMaterial, [0, 4.05, -0.1]);
-addFridgeBox(fridgeWidth - 0.35, 0.12, fridgeDepth - 0.45, fridgeShellMaterial, [0, 4.45, -0.1]);
+const fridgeShelfLevels = { bottom: 0.35, middle: 1.5, top: 2.85 };
+for (const shelfY of Object.values(fridgeShelfLevels)) {
+  addFridgeBox(fridgeWidth - 0.35, 0.12, fridgeDepth - 0.45, fridgeShellMaterial,
+    [0, shelfY, -0.1]);
+}
 addFridgeBox(fridgeWidth - 0.35, 2.08, 0.16, fridgeShellMaterial, [0, 5.17, fridgeDepth / 2 + 0.04]);
 
 const appleMaterial = new THREE.MeshStandardMaterial({ color: '#c83236', roughness: 0.38 });
-const grapeMaterial = new THREE.MeshStandardMaterial({ color: '#68a442', roughness: 0.42 });
-const strawberryMaterial = new THREE.MeshStandardMaterial({ color: '#355dc3', roughness: 0.38 });
-const strawberrySeedMaterial = new THREE.MeshStandardMaterial({ color: '#a9d8e8', roughness: 0.46 });
-const strawberryLeafMaterial = new THREE.MeshStandardMaterial({ color: '#477c3d', roughness: 0.55 });
-const fruitShelfY = 4.45 + 0.12 + 0.4;
+const pearMaterial = new THREE.MeshStandardMaterial({ color: '#68a442', roughness: 0.42 });
+const blueberryMaterial = new THREE.MeshStandardMaterial({ color: '#355dc3', roughness: 0.38 });
+const appleShelfY = fridgeShelfLevels.top + 0.12 / 2;
 const apple = new THREE.Mesh(new THREE.SphereGeometry(0.42, 18, 14), appleMaterial);
 apple.scale.set(0.92, 1, 0.9);
-apple.position.set(-1.05, fruitShelfY, 0.35);
+apple.position.set(-0.75, appleShelfY + 0.42, 0.35);
 fridgeRoot.add(apple);
 const appleStem = new THREE.Mesh(
   new THREE.CylinderGeometry(0.035, 0.045, 0.2, 7),
   new THREE.MeshStandardMaterial({ color: '#49351f', roughness: 0.8 })
 );
-appleStem.position.set(-1.05, fruitShelfY + 0.42, 0.35);
+appleStem.position.set(-0.75, appleShelfY + 0.84, 0.35);
 fridgeRoot.add(appleStem);
-for (const [x, y, z] of [
-  [-0.31, 0, 0.25], [-0.03, 0.03, 0.25], [0.25, 0, 0.25],
-  [-0.17, 0.24, 0.28], [0.11, 0.25, 0.28], [-0.03, 0.47, 0.3]
+const pearShelfY = fridgeShelfLevels.middle + 0.12 / 2;
+const pearGeometry = new THREE.LatheGeometry([
+  new THREE.Vector2(0, 0), new THREE.Vector2(0.16, 0.02), new THREE.Vector2(0.28, 0.14),
+  new THREE.Vector2(0.34, 0.34), new THREE.Vector2(0.31, 0.5), new THREE.Vector2(0.2, 0.66),
+  new THREE.Vector2(0.12, 0.82), new THREE.Vector2(0.08, 0.9), new THREE.Vector2(0, 0.9)
+], 18);
+const pear = new THREE.Mesh(pearGeometry, pearMaterial);
+pear.position.set(0, pearShelfY, 0.35);
+fridgeRoot.add(pear);
+const pearStem = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.035, 0.045, 0.16, 7),
+  new THREE.MeshStandardMaterial({ color: '#49351f', roughness: 0.8 })
+);
+pearStem.position.set(0, pearShelfY + 0.96, 0.35);
+fridgeRoot.add(pearStem);
+
+const blueberryGeometry = new THREE.SphereGeometry(0.16, 12, 10);
+for (const [x, z] of [
+  [-0.38, 0.12], [-0.12, 0.22], [0.16, 0.12], [0.42, 0.22],
+  [-0.25, 0.48], [0.04, 0.52], [0.32, 0.48]
 ]) {
-  const grape = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), grapeMaterial);
-  grape.position.set(x, fruitShelfY + y, z);
-  fridgeRoot.add(grape);
-}
-for (const [x, z] of [[0.92, 0.32], [1.3, 0.32]]) {
-  const strawberry = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.62, 12), strawberryMaterial);
-  strawberry.rotation.z = Math.PI;
-  strawberry.position.set(x, fruitShelfY + 0.31, z);
-  fridgeRoot.add(strawberry);
-
-  const leaves = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.12, 7), strawberryLeafMaterial);
-  leaves.position.set(x, fruitShelfY + 0.57, z);
-  fridgeRoot.add(leaves);
-
-  for (const [seedX, seedY] of [[-0.1, 0.13], [0.08, 0.08], [-0.02, -0.02], [0.12, -0.12]]) {
-    const seed = new THREE.Mesh(new THREE.SphereGeometry(0.025, 6, 5), strawberrySeedMaterial);
-    seed.position.set(x + seedX, fruitShelfY + 0.31 + seedY, z + 0.17);
-    fridgeRoot.add(seed);
-  }
+  const blueberry = new THREE.Mesh(blueberryGeometry, blueberryMaterial);
+  blueberry.position.set(x, fridgeShelfLevels.bottom + 0.12 / 2 + 0.16, z);
+  fridgeRoot.add(blueberry);
 }
 
 const fridgeDoorPivot = new THREE.Group();
@@ -927,7 +929,7 @@ const passwordIndex = [
   {
     phrase: 'rgbfruit',
     title: 'RGB Fruit',
-    description: 'The first letters of the fridge fruits, read from left to right, reveal the code.',
+    description: 'The first letters of the fridge fruits, read from top to bottom, reveal the code.',
     id: 'rgbfruit',
     rank: 'Difficult'
   }
