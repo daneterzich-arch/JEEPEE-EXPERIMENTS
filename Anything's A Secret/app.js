@@ -842,16 +842,15 @@ for (const x of [-6.9, 6.9]) {
   scene.add(lamp);
 }
 
-const edgeMaterial = new THREE.MeshStandardMaterial({ color: '#797b70', roughness: 1 });
-for (const [x, z, rotation] of [
-  [0, -16.62, 0],
-  [0, 16.62, 0],
-  [-16.62, 0, Math.PI / 2],
-  [16.62, 0, Math.PI / 2]
-]) {
-  const edge = addBlock(1, 0.23, 33.2, edgeMaterial, [x, platformTop + 0.13, z]);
-  edge.rotation.y = rotation;
+const spawnStructureMaterial = new THREE.MeshStandardMaterial({ color: '#797b70', roughness: 1 });
+const spawnPillarHeight = 18;
+const spawnPillarPositions = [[-16, -16], [-16, 16], [16, -16], [16, 16]];
+for (const [x, z] of spawnPillarPositions) {
+  addBlock(1.2, spawnPillarHeight, 1.2, spawnStructureMaterial,
+    [x, platformTop + spawnPillarHeight / 2, z]);
 }
+addBlock(36, 1, 36, spawnStructureMaterial,
+  [0, platformTop + spawnPillarHeight + 0.5, 0]);
 
 const eyeHeight = 5.5;
 const player = {
@@ -1240,7 +1239,7 @@ passwordForm.addEventListener('submit', (event) => {
 
   if (passwordId === 'food' && !tvImageVisible) {
     passwordInput.setAttribute('aria-invalid', 'true');
-    passwordHint.textContent = 'The picture must be showing on the television first.';
+    passwordHint.textContent = "You're missing something.";
     return;
   }
 
@@ -1280,6 +1279,9 @@ function collidesWithStructure(x, z) {
   const planterCollision = spawnPlanterPositions.some(([planterX, planterZ]) =>
     Math.abs(x - planterX) < 2.45 && Math.abs(z - planterZ) < 2.45
   );
+  const pillarCollision = spawnPillarPositions.some(([pillarX, pillarZ]) =>
+    Math.abs(x - pillarX) < 0.8 && Math.abs(z - pillarZ) < 0.8
+  );
   const feetHeight = player.position.y - eyeHeight;
   const overlapsSignHeight = feetHeight < 6.5 + 2.7 && feetHeight + player.height > 6.5 - 2.7;
   const signCollision = overlapsSignHeight && Math.abs(x) < 7.1 && Math.abs(z + 13.25) < 0.9;
@@ -1290,7 +1292,7 @@ function collidesWithStructure(x, z) {
   const eastWall = overlapsHouse && x > houseMaxX - 0.6 && x < houseMaxX + 0.6;
   const northWall = overlapsHouse && z > houseMinZ - 0.6 && z < houseMinZ + 0.6;
   const southWall = overlapsHouse && z > houseMaxZ - 0.6 && z < houseMaxZ + 0.6;
-  return planterCollision || signCollision || westWall || eastWall || northWall || southWall;
+  return planterCollision || pillarCollision || signCollision || westWall || eastWall || northWall || southWall;
 }
 
 function canReachGroundAt(x, z) {
