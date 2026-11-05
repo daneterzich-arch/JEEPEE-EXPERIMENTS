@@ -825,6 +825,30 @@ moonWord.position.set(68, 34, -118.5);
 moonWord.visible = false;
 scene.add(moonWord);
 
+const crossGroup = new THREE.Group();
+const crossMaterial = new THREE.MeshStandardMaterial({
+  color: '#d8d2c5',
+  metalness: 0.82,
+  roughness: 0.25,
+  emissive: '#3a342d',
+  emissiveIntensity: 0.25
+});
+const crossStem = new THREE.Mesh(new THREE.BoxGeometry(1.8, 13, 1.8), crossMaterial);
+crossStem.position.y = 6.5;
+const crossArm = new THREE.Mesh(new THREE.BoxGeometry(7.5, 1.8, 1.8), crossMaterial);
+crossArm.position.y = 12.1;
+const crossCore = new THREE.Mesh(new THREE.SphereGeometry(1.3, 24, 20), new THREE.MeshStandardMaterial({
+  color: '#f2d38d',
+  emissive: '#4a3a17',
+  emissiveIntensity: 0.45,
+  metalness: 0.72,
+  roughness: 0.28
+}));
+crossCore.position.y = 13.2;
+crossGroup.add(crossStem, crossArm, crossCore);
+crossGroup.position.set(0, 0.35, -50);
+scene.add(crossGroup);
+
 const starGeometry = new THREE.SphereGeometry(0.8, 8, 6);
 const starMaterial = new THREE.MeshBasicMaterial({ color: '#f6f1d8' });
 for (let index = 0; index < 15; index += 1) {
@@ -1103,11 +1127,24 @@ const passwordIndex = [
     description: 'You little geopolitical genius, you. Most people don\'t even know the flag of New York!',
     id: 'hegemony',
     rank: 'Difficult'
+  },
+  {
+    phrase: 'enricopucci',
+    title: 'Stone Ocean',
+    description: 'Is that a JoJo reference?',
+    id: 'enricopucci',
+    rank: 'Unique'
   }
 ];
 const passwordSecrets = new Map(passwordIndex.filter(({ phrase }) => phrase).map(({ phrase, id }) => [phrase, id]));
+const crossRadius = 10;
+const madeInHeavenDurationMs = 30000;
+const madeInHeavenPhrase = 'madeinheaven';
 let timeOfDay = 'day';
 let activeStarPhrase = null;
+let madeInHeavenActive = false;
+let madeInHeavenStartedAt = 0;
+let madeInHeavenCycleClock = 0;
 
 function updateWorldSettings() {
   const isNight = timeOfDay === 'night';
@@ -1136,6 +1173,46 @@ function updateWorldSettings() {
   nightStars.children.forEach((star, index) => {
     star.visible = isNight && index < starCount;
   });
+}
+
+function activateMadeInHeaven() {
+  if (madeInHeavenActive) return;
+  madeInHeavenActive = true;
+  madeInHeavenStartedAt = performance.now();
+  madeInHeavenCycleClock = 0;
+  timeOfDay = 'day';
+  updateWorldSettings();
+  showToast('Made In Heaven');
+}
+
+function updateMadeInHeavenEffect(delta) {
+  if (!madeInHeavenActive) {
+    sun.rotation.y += delta * 0.18;
+    moon.rotation.y += delta * 0.18;
+    return;
+  }
+
+  const elapsedMs = performance.now() - madeInHeavenStartedAt;
+  if (elapsedMs >= madeInHeavenDurationMs) {
+    madeInHeavenActive = false;
+    timeOfDay = 'day';
+    updateWorldSettings();
+    showToast('The heavens reset.');
+    return;
+  }
+
+  const phaseSpeed = Math.pow(1.5, elapsedMs / 9000);
+  madeInHeavenCycleClock += delta * phaseSpeed;
+
+  const spinSpeed = 1.2 * phaseSpeed + 0.8;
+  sun.rotation.y += delta * spinSpeed;
+  moon.rotation.y += delta * spinSpeed;
+
+  if (madeInHeavenCycleClock >= 6) {
+    madeInHeavenCycleClock = 0;
+    timeOfDay = timeOfDay === 'day' ? 'night' : 'day';
+    updateWorldSettings();
+  }
 }
 
 for (const input of timeOfDayInputs) {
@@ -1421,6 +1498,26 @@ passwordForm.addEventListener('submit', (event) => {
   event.preventDefault();
   const phrase = passwordInput.value.trim().toLowerCase().replace(/\s+/g, '');
   passwordInput.value = '';
+
+  if (phrase === madeInHeavenPhrase) {
+    if (!isNearCross()) {
+      passwordInput.setAttribute('aria-invalid', 'true');
+      passwordHint.textContent = 'The cross is too far away.';
+      return;
+    }
+
+    activateMadeInHeaven();
+    passwordInput.removeAttribute('aria-invalid');
+    passwordHint.textContent = 'The heavens answer your name.';
+    return;
+  }
+
+  if (phrase === 'enricopucci' && !madeInHeavenActive) {
+    passwordInput.setAttribute('aria-invalid', 'true');
+    passwordHint.textContent = 'The world is not ready for that name yet.';
+    return;
+  }
+
   const passwordId = passwordSecrets.get(phrase);
 
   if (passwordId === 'food' && !tvImageVisible) {
@@ -1452,6 +1549,10 @@ passwordInput.addEventListener('input', () => {
   passwordInput.removeAttribute('aria-invalid');
   passwordHint.textContent = 'The world keeps what you type.';
 });
+
+function isNearCross() {
+  return Math.hypot(player.position.x - crossGroup.position.x, player.position.z - crossGroup.position.z) <= crossRadius;
+}
 
 function groundHeightAt(x, z) {
   const insideHouse = x > houseMinX && x < houseMaxX && z > houseMinZ && z < houseMaxZ;
@@ -1501,6 +1602,8 @@ function animate(now) {
   requestAnimationFrame(animate);
   const delta = Math.min((now - lastFrameTime) / 1000, 0.05);
   lastFrameTime = now;
+
+  updateMadeInHeavenEffect(delta);
 
   if (playing) {
     const forwardInput = Number(keys.has('KeyW')) - Number(keys.has('KeyS'));
