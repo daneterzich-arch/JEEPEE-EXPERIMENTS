@@ -1164,13 +1164,24 @@ function renderPasswordIndex(rank = activePasswordRank) {
     select.setAttribute('aria-expanded', String(isExpanded));
     select.setAttribute('aria-controls', `password-description-${entry.id}`);
 
+    const titleRow = document.createElement('span');
+    titleRow.className = 'password-index-title';
+
     const title = document.createElement('span');
-    title.textContent = isUnlocked ? entry.title : '';
+    title.textContent = entry.title;
+
+    const check = document.createElement('span');
+    check.className = 'password-index-check';
+    check.textContent = '✓';
+    check.hidden = !isUnlocked;
+
+    titleRow.append(title, check);
+
     const tier = document.createElement('span');
     tier.className = 'password-index-rank';
     tier.textContent = entry.rank;
 
-    select.append(title, tier);
+    select.append(titleRow, tier);
     select.addEventListener('click', () => {
       expandedPasswordId = isExpanded ? null : entry.id;
       renderPasswordIndex();
@@ -1183,6 +1194,8 @@ function renderPasswordIndex(rank = activePasswordRank) {
     description.textContent = isUnlocked
       ? entry.description
       : 'get the password to find its description';
+
+    if (isUnlocked) item.classList.add('is-unlocked');
 
     item.append(select, description);
     passwordList.append(item);
