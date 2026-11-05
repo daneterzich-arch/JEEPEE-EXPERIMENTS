@@ -1086,7 +1086,7 @@ const passwordIndex = [
   {
     phrase: 'hegemony',
     title: 'Hegemony',
-    description: 'The flags around the spawn point toward a system of dominance.',
+    description: 'You little geopolitical genius, you. Most people don\'t even know the flag of New York!',
     id: 'hegemony',
     rank: 'Difficult'
   }

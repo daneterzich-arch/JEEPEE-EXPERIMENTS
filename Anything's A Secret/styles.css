@@ -382,6 +382,9 @@ kbd {
 
 .password-list {
   display: grid;
+  max-height: 170px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   gap: 1px;
   margin: 0;
   padding: 0;
