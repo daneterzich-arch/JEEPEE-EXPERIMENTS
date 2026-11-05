@@ -642,6 +642,9 @@ const fridgeRoot = new THREE.Group();
 fridgeRoot.position.copy(fridgePosition);
 scene.add(fridgeRoot);
 const fridgeShellMaterial = new THREE.MeshStandardMaterial({ color: '#d8dfe0', roughness: 0.38, metalness: 0.16 });
+const fridgeDoorMaterial = new THREE.MeshStandardMaterial({
+  color: '#d8dfe0', roughness: 0.38, metalness: 0.16, transparent: true, opacity: 0.18, depthWrite: false
+});
 const fridgeInteriorMaterial = new THREE.MeshStandardMaterial({ color: '#69777a', roughness: 0.9 });
 function addFridgeBox(width, height, depth, material, position, parent = fridgeRoot) {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
@@ -708,7 +711,7 @@ for (const [x, z] of [
 const fridgeDoorPivot = new THREE.Group();
 fridgeDoorPivot.position.set(-fridgeWidth / 2 + 0.12, 0.18, fridgeDepth / 2 + 0.08);
 fridgeRoot.add(fridgeDoorPivot);
-addFridgeBox(fridgeWidth - 0.3, 3.75, 0.2, fridgeShellMaterial,
+addFridgeBox(fridgeWidth - 0.3, 3.75, 0.2, fridgeDoorMaterial,
   [(fridgeWidth - 0.3) / 2, 2.03, 0], fridgeDoorPivot);
 addFridgeBox(0.14, 0.9, 0.22, houseTrimMaterial,
   [fridgeWidth - 0.58, 2.03, 0.13], fridgeDoorPivot);
