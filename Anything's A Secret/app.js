@@ -1049,6 +1049,20 @@ const passwordIndex = [
     rank: 'Surface'
   },
   {
+    phrase: '45',
+    title: 'Addition',
+    description: "You got bored, didn't you?",
+    id: '45',
+    rank: 'Surface'
+  },
+  {
+    phrase: '362880',
+    title: 'Multiplication',
+    description: "You got bored, didn't you? (chapter 2)",
+    id: '362880',
+    rank: 'Surface'
+  },
+  {
     phrase: 'sunc0d3',
     title: 'Sunlit Cipher',
     description: 'Brighter than the sun.',
@@ -1151,7 +1165,7 @@ function renderPasswordIndex(rank = activePasswordRank) {
     select.setAttribute('aria-controls', `password-description-${entry.id}`);
 
     const title = document.createElement('span');
-    title.textContent = isUnlocked ? entry.title : '???';
+    title.textContent = isUnlocked ? entry.title : '';
     const tier = document.createElement('span');
     tier.className = 'password-index-rank';
     tier.textContent = entry.rank;
