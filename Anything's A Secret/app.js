@@ -1036,14 +1036,14 @@ const passwordRanks = ['Surface', 'Easy', 'Mediocre', 'Difficult', 'Obscure', 'U
 const passwordIndex = [
   {
     phrase: 'anything',
-    title: 'The First Secret',
+    title: 'Genius',
     description: 'A bold beginning, hidden in plain sight.',
     id: 'anything',
     rank: 'Surface'
   },
   {
     phrase: 'welcome',
-    title: 'A Warm Welcome',
+    title: 'Howdy!',
     description: 'Every journey begins by arriving.',
     id: 'welcome',
     rank: 'Surface'
@@ -1064,42 +1064,42 @@ const passwordIndex = [
   },
   {
     phrase: 'sunc0d3',
-    title: 'Sunlit Cipher',
+    title: 'High Noon',
     description: 'Brighter than the sun.',
     id: 'sunc0d3',
     rank: 'Mediocre'
   },
   {
     phrase: '',
-    title: 'Star Count',
+    title: 'Astronomer',
     description: 'Count the stars in the night sky, then enter the number followed by ST4RS.',
     id: 'stars',
     rank: 'Difficult'
   },
   {
     phrase: 'fu11m00n',
-    title: 'Full Moon',
+    title: 'Shiny Night',
     description: 'A quiet message is written across the moon.',
     id: 'fullmoon',
     rank: 'Mediocre'
   },
   {
     phrase: 'mm..food',
-    title: 'Mm.. Food',
-    description: 'Tune channel 10312020 and turn on the television to unlock this secret.',
+    title: 'MF DOOM',
+    description: 'Definitely not the last of him.',
     id: 'food',
     rank: 'Obscure'
   },
   {
     phrase: 'rgbfruit',
-    title: 'RGB Fruit',
+    title: 'Colors',
     description: 'The first letters of the fridge fruits, read from top to bottom, reveal the code.',
     id: 'rgbfruit',
     rank: 'Difficult'
   },
   {
     phrase: 'hegemony',
-    title: 'Hegemony',
+    title: 'Geopolitics',
     description: 'You little geopolitical genius, you. Most people don\'t even know the flag of New York!',
     id: 'hegemony',
     rank: 'Difficult'
