@@ -857,6 +857,153 @@ for (const [x, z] of spawnPillarPositions) {
 addBlock(36, 1, 36, spawnStructureMaterial,
   [0, platformTop + spawnPillarHeight + 0.5, 0]);
 
+const spawnFlagCanvasSize = { width: 480, height: 300 };
+function makeSpawnFlagTexture(drawFlag) {
+  const flagCanvas = document.createElement('canvas');
+  flagCanvas.width = spawnFlagCanvasSize.width;
+  flagCanvas.height = spawnFlagCanvasSize.height;
+  const context = flagCanvas.getContext('2d');
+  drawFlag(context, flagCanvas.width, flagCanvas.height);
+  const texture = new THREE.CanvasTexture(flagCanvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+function drawGeorgiaCross(context, x, y, size, color) {
+  context.fillStyle = color;
+  context.fillRect(x - size * 0.1, y - size * 0.5, size * 0.2, size);
+  context.fillRect(x - size * 0.5, y - size * 0.1, size, size * 0.2);
+}
+
+function drawMoroccoStar(context, centerX, centerY, radius) {
+  context.beginPath();
+  for (let point = 0; point < 10; point += 1) {
+    const pointRadius = point % 2 === 0 ? radius : radius * 0.42;
+    const angle = -Math.PI / 2 + point * Math.PI / 5;
+    const x = centerX + Math.cos(angle) * pointRadius;
+    const y = centerY + Math.sin(angle) * pointRadius;
+    if (point === 0) context.moveTo(x, y);
+    else context.lineTo(x, y);
+  }
+  context.closePath();
+  context.stroke();
+}
+
+const spawnFlags = [
+  {
+    name: 'Switzerland',
+    width: 2.9,
+    texture: makeSpawnFlagTexture((context, width, height) => {
+      context.fillStyle = '#d52b1e';
+      context.fillRect(0, 0, width, height);
+      context.fillStyle = '#fff';
+      context.fillRect(width * 0.42, height * 0.2, width * 0.16, height * 0.6);
+      context.fillRect(width * 0.2, height * 0.42, width * 0.6, height * 0.16);
+    })
+  },
+  {
+    name: 'Georgia',
+    width: 4.1,
+    texture: makeSpawnFlagTexture((context, width, height) => {
+      context.fillStyle = '#fff';
+      context.fillRect(0, 0, width, height);
+      drawGeorgiaCross(context, width / 2, height / 2, height * 0.9, '#d62828');
+      for (const [x, y] of [[0.25, 0.25], [0.75, 0.25], [0.25, 0.75], [0.75, 0.75]]) {
+        drawGeorgiaCross(context, width * x, height * y, height * 0.25, '#d62828');
+      }
+    })
+  },
+  {
+    name: 'Morocco',
+    width: 4.1,
+    texture: makeSpawnFlagTexture((context, width, height) => {
+      context.fillStyle = '#c1272d';
+      context.fillRect(0, 0, width, height);
+      context.strokeStyle = '#006233';
+      context.lineWidth = 12;
+      drawMoroccoStar(context, width / 2, height / 2, height * 0.27);
+    })
+  },
+  {
+    name: 'New York',
+    width: 4.1,
+    texture: makeSpawnFlagTexture((context, width, height) => {
+      context.fillStyle = '#164b8a';
+      context.fillRect(0, 0, width, height);
+      context.fillStyle = '#e6c65b';
+      context.beginPath();
+      context.arc(width / 2, height * 0.3, height * 0.1, 0, Math.PI * 2);
+      context.fill();
+      context.fillStyle = '#d5ba69';
+      context.fillRect(width * 0.39, height * 0.4, width * 0.22, height * 0.34);
+      context.fillStyle = '#fff0bd';
+      context.fillRect(width * 0.43, height * 0.46, width * 0.14, height * 0.22);
+      context.fillStyle = '#164b8a';
+      context.fillRect(width * 0.48, height * 0.48, width * 0.04, height * 0.18);
+      context.fillStyle = '#e6c65b';
+      context.font = 'bold 28px Georgia, serif';
+      context.textAlign = 'center';
+      context.fillText('EXCELSIOR', width / 2, height * 0.9);
+    })
+  }
+];
+
+const spawnFlagHeight = 2.8;
+const spawnFlagGap = 0.6;
+const spawnFlagTotalWidth = spawnFlags.reduce((total, flag) => total + flag.width, 0) +
+  spawnFlagGap * (spawnFlags.length - 1);
+const spawnFlagCenterOffsets = [];
+let spawnFlagCursor = -spawnFlagTotalWidth / 2;
+for (const flag of spawnFlags) {
+  spawnFlagCenterOffsets.push(spawnFlagCursor + flag.width / 2);
+  spawnFlagCursor += flag.width + spawnFlagGap;
+}
+const spawnFlagFrameMaterial = new THREE.MeshStandardMaterial({ color: '#b18a57', roughness: 0.82 });
+const spawnFlagHeightPosition = platformTop + 10.3;
+
+function addSpawnFlagRow(axis, fixed, coordinates, rotationY) {
+  for (let index = 0; index < spawnFlags.length; index += 1) {
+    const flag = spawnFlags[index];
+    const position = axis === 'z'
+      ? [coordinates[index], spawnFlagHeightPosition, fixed]
+      : [fixed, spawnFlagHeightPosition, coordinates[index]];
+    const holder = new THREE.Group();
+    holder.position.set(...position);
+    holder.rotation.y = rotationY;
+
+    const cloth = new THREE.Mesh(
+      new THREE.PlaneGeometry(flag.width, spawnFlagHeight),
+      new THREE.MeshStandardMaterial({
+        map: flag.texture,
+        roughness: 0.84,
+        side: THREE.DoubleSide
+      })
+    );
+    cloth.castShadow = true;
+    holder.add(cloth);
+
+    const topBar = new THREE.Mesh(
+      new THREE.BoxGeometry(flag.width + 0.12, 0.09, 0.1),
+      spawnFlagFrameMaterial
+    );
+    topBar.position.y = spawnFlagHeight / 2;
+    holder.add(topBar);
+    const bottomBar = topBar.clone();
+    bottomBar.position.y = -spawnFlagHeight / 2;
+    holder.add(bottomBar);
+
+    holder.userData.flagName = flag.name;
+    scene.add(holder);
+  }
+}
+
+const spawnFlagWallEdge = 15.34;
+const reverseFlagOffsets = spawnFlagCenterOffsets.map((offset) => -offset);
+addSpawnFlagRow('z', -spawnFlagWallEdge, spawnFlagCenterOffsets, 0);
+addSpawnFlagRow('z', spawnFlagWallEdge, reverseFlagOffsets, Math.PI);
+addSpawnFlagRow('x', -spawnFlagWallEdge, spawnFlagCenterOffsets, Math.PI / 2);
+addSpawnFlagRow('x', spawnFlagWallEdge, reverseFlagOffsets, -Math.PI / 2);
+
 const eyeHeight = 5.5;
 const player = {
   position: new THREE.Vector3(0, platformTop + eyeHeight, 0),
@@ -934,6 +1081,13 @@ const passwordIndex = [
     title: 'RGB Fruit',
     description: 'The first letters of the fridge fruits, read from top to bottom, reveal the code.',
     id: 'rgbfruit',
+    rank: 'Difficult'
+  },
+  {
+    phrase: 'hegemony',
+    title: 'Hegemony',
+    description: 'The flags around the spawn point toward a system of dominance.',
+    id: 'hegemony',
     rank: 'Difficult'
   }
 ];
