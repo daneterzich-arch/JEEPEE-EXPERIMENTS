@@ -1128,8 +1128,7 @@ const passwordIndex = [
 const passwordSecrets = new Map(passwordIndex.filter(({ phrase }) => phrase).map(({ phrase, id }) => [phrase, id]));
 const crossRadius = 50;
 const celestialOrbitRadius = 420;
-const celestialOrbitAnchor = player.position.clone();
-const celestialOrbitCenterHeight = celestialOrbitAnchor.y + 580;
+const celestialOrbitAnchor = new THREE.Vector3(player.position.x, platformTop, player.position.z);
 const celestialOrbitDepth = celestialOrbitAnchor.z;
 const celestialLabelDepth = celestialOrbitDepth + 36;
 const idleCelestialSpinSpeed = 0.18 / 20;
@@ -1141,21 +1140,32 @@ let celestialOrbitAngle = 0;
 let madeInHeavenActive = false;
 let madeInHeavenActivated = false;
 let madeInHeavenStartedAt = 0;
-let madeInHeavenCycleClock = 0;
 
 function updateCelestialPositions() {
-  const xOffset = Math.sin(celestialOrbitAngle) * celestialOrbitRadius;
-  const yOffset = Math.cos(celestialOrbitAngle) * celestialOrbitRadius;
+  const xOffset = Math.cos(celestialOrbitAngle) * celestialOrbitRadius;
+  const yOffset = Math.sin(celestialOrbitAngle) * celestialOrbitRadius;
   const x = celestialOrbitAnchor.x + xOffset;
-  const y = celestialOrbitCenterHeight - yOffset;
+  const y = celestialOrbitAnchor.y + yOffset;
   const oppositeX = celestialOrbitAnchor.x - xOffset;
-  const oppositeY = celestialOrbitCenterHeight + yOffset;
+  const oppositeY = celestialOrbitAnchor.y - yOffset;
 
   sunGlow.position.set(x, y, celestialOrbitDepth);
   sunWord.position.set(x, y, celestialLabelDepth);
   moon.position.set(oppositeX, oppositeY, celestialOrbitDepth);
   moonWord.position.set(oppositeX, oppositeY, celestialLabelDepth);
   sun.position.set(x, y + 76, celestialOrbitDepth);
+}
+
+function advanceCelestialOrbit(delta, speed) {
+  const previousHalf = Math.floor(celestialOrbitAngle / Math.PI);
+  celestialOrbitAngle += delta * speed;
+  const currentHalf = Math.floor(celestialOrbitAngle / Math.PI);
+
+  updateCelestialPositions();
+  if (currentHalf !== previousHalf) {
+    timeOfDay = currentHalf % 2 === 0 ? 'day' : 'night';
+    updateWorldSettings();
+  }
 }
 
 function updateWorldSettings() {
@@ -1192,16 +1202,16 @@ function activateMadeInHeaven() {
   madeInHeavenActive = true;
   madeInHeavenActivated = true;
   madeInHeavenStartedAt = performance.now();
-  madeInHeavenCycleClock = 0;
+  celestialOrbitAngle = 0;
   timeOfDay = 'day';
+  updateCelestialPositions();
   updateWorldSettings();
   showToast('Made In Heaven');
 }
 
 function updateMadeInHeavenEffect(delta) {
   if (!madeInHeavenActive) {
-    celestialOrbitAngle += delta * idleCelestialSpinSpeed;
-    updateCelestialPositions();
+    advanceCelestialOrbit(delta, idleCelestialSpinSpeed);
     sunGlow.rotation.y += delta * idleCelestialSpinSpeed;
     moon.rotation.y -= delta * idleCelestialSpinSpeed;
     return;
@@ -1210,30 +1220,28 @@ function updateMadeInHeavenEffect(delta) {
   const elapsedMs = performance.now() - madeInHeavenStartedAt;
   if (elapsedMs >= madeInHeavenDurationMs) {
     madeInHeavenActive = false;
-    timeOfDay = 'day';
+    timeOfDay = Math.floor(celestialOrbitAngle / Math.PI) % 2 === 0 ? 'day' : 'night';
     updateWorldSettings();
     showToast('The heavens reset.');
     return;
   }
 
   const phaseSpeed = Math.pow(2.25, elapsedMs / 9000);
-  madeInHeavenCycleClock += delta * phaseSpeed;
-
   const spinSpeed = 1.2 * phaseSpeed + 0.8;
-  celestialOrbitAngle += delta * spinSpeed;
-  updateCelestialPositions();
+  advanceCelestialOrbit(delta, spinSpeed);
   sunGlow.rotation.y += delta * spinSpeed;
   moon.rotation.y -= delta * spinSpeed;
-
-  if (madeInHeavenCycleClock >= 6) {
-    madeInHeavenCycleClock = 0;
-    timeOfDay = timeOfDay === 'day' ? 'night' : 'day';
-    updateWorldSettings();
-  }
 }
 
 for (const input of timeOfDayInputs) {
   input.addEventListener('change', () => {
+    const currentHalf = Math.floor(celestialOrbitAngle / Math.PI);
+    const isCurrentNight = currentHalf % 2 !== 0;
+    const isRequestedNight = input.value === 'night';
+    if (isCurrentNight !== isRequestedNight) {
+      celestialOrbitAngle += Math.PI;
+      updateCelestialPositions();
+    }
     timeOfDay = input.value;
     updateWorldSettings();
   });
