@@ -30,7 +30,6 @@ const passwordIndexPanel = document.querySelector('#password-index-panel');
 const passwordFilters = document.querySelector('#password-filters');
 const passwordList = document.querySelector('#password-list');
 const worldLoadingManager = new THREE.LoadingManager();
-const failedWorldAssets = [];
 let resolveWorldAssetsLoaded;
 const worldAssetsLoaded = new Promise((resolve) => {
   resolveWorldAssetsLoaded = resolve;
@@ -47,7 +46,6 @@ function setLoadingProgress(percent, message) {
 worldLoadingManager.onProgress = (_url, loaded, total) => {
   setLoadingProgress((loaded / total) * 55, `Loading world assets… ${loaded} of ${total}`);
 };
-worldLoadingManager.onError = (url) => failedWorldAssets.push(url);
 worldLoadingManager.onLoad = () => resolveWorldAssetsLoaded();
 
 const scene = new THREE.Scene();
@@ -1244,6 +1242,30 @@ const upstairsFrameMaterial = new THREE.MeshStandardMaterial({ color: '#423126',
 const upstairsPhotoLoader = new THREE.TextureLoader(worldLoadingManager);
 upstairsPhotoLoader.setCrossOrigin('anonymous');
 
+function createFallbackWallArt(title) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 384;
+  const context = canvas.getContext('2d');
+  const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+  gradient.addColorStop(0, '#283d37');
+  gradient.addColorStop(1, '#a66b4b');
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = 'rgba(20, 23, 21, 0.55)';
+  context.fillRect(0, 270, canvas.width, 114);
+  context.fillStyle = '#f1ead6';
+  context.font = 'bold 24px monospace';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.fillText(title.toUpperCase(), canvas.width / 2, 302);
+  context.font = '16px monospace';
+  context.fillText('ARTWORK UNAVAILABLE', canvas.width / 2, 340);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
 function addUpstairsWallArt(imagePath, title, credit, license, position, width, height, rotationY) {
   const [x, y, z] = position;
   const facesX = Math.abs(Math.sin(rotationY)) > 0.5;
@@ -1252,10 +1274,15 @@ function addUpstairsWallArt(imagePath, title, credit, license, position, width, 
     : [width + 0.3, height + 0.3, 0.24];
   addBlock(...frameDimensions, upstairsFrameMaterial, position);
 
-  const texture = upstairsPhotoLoader.load(new URL(imagePath, import.meta.url).href);
+  let photoMaterial;
+  const texture = upstairsPhotoLoader.load(new URL(imagePath, import.meta.url).href, undefined, undefined, (error) => {
+    console.warn(`Could not load wall art "${title}" from ${imagePath}; using a placeholder.`, error);
+    photoMaterial.map = createFallbackWallArt(title);
+    photoMaterial.needsUpdate = true;
+  });
   texture.colorSpace = THREE.SRGBColorSpace;
-  const photo = new THREE.Mesh(new THREE.PlaneGeometry(width, height),
-    new THREE.MeshStandardMaterial({ map: texture, side: THREE.DoubleSide, roughness: 0.78 }));
+  photoMaterial = new THREE.MeshStandardMaterial({ map: texture, side: THREE.DoubleSide, roughness: 0.78 });
+  const photo = new THREE.Mesh(new THREE.PlaneGeometry(width, height), photoMaterial);
   photo.position.set(
     x + (facesX ? Math.sin(rotationY) * 0.14 : 0),
     y,
@@ -2271,9 +2298,6 @@ resize();
 
 async function prepareWorld() {
   await worldAssetsLoaded;
-  if (failedWorldAssets.length > 0) {
-    throw new Error(`Could not load world assets: ${failedWorldAssets.join(', ')}`);
-  }
 
   setLoadingProgress(68, 'Preparing scene shaders…');
   await renderer.compileAsync(scene, camera);
