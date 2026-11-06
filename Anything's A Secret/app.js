@@ -1066,14 +1066,14 @@ const passwordIndex = [
     title: 'Addition',
     description: "You got bored, didn't you?",
     id: '45',
-    rank: 'Surface'
+    rank: 'Easy'
   },
   {
     phrase: '362880',
     title: 'Multiplication',
     description: "You got bored, didn't you? (chapter 2)",
     id: '362880',
-    rank: 'Surface'
+    rank: 'Easy'
   },
   {
     phrase: 'sunc0d3',
@@ -1127,14 +1127,16 @@ const passwordIndex = [
 ];
 const passwordSecrets = new Map(passwordIndex.filter(({ phrase }) => phrase).map(({ phrase, id }) => [phrase, id]));
 const crossRadius = 50;
-const celestialOrbitRadius = Math.hypot(68, 130);
-const celestialHeight = 34;
-const celestialLabelRadius = celestialOrbitRadius - 11.5;
+const celestialOrbitRadius = Math.hypot(68, 68);
+const celestialOrbitCenterHeight = 102;
+const celestialOrbitDepth = -130;
+const celestialLabelDepth = celestialOrbitDepth + 11.5;
+const idleCelestialSpinSpeed = 0.18 / 20;
 const madeInHeavenDurationMs = 30000;
 const madeInHeavenPhrase = 'madeinheaven';
 let timeOfDay = 'day';
 let activeStarPhrase = null;
-let celestialOrbitAngle = Math.atan2(68, 130);
+let celestialOrbitAngle = Math.atan2(68, 68);
 let madeInHeavenActive = false;
 let madeInHeavenActivated = false;
 let madeInHeavenStartedAt = 0;
@@ -1142,14 +1144,15 @@ let madeInHeavenCycleClock = 0;
 
 function updateCelestialPositions() {
   const x = Math.sin(celestialOrbitAngle) * celestialOrbitRadius;
-  const z = -Math.cos(celestialOrbitAngle) * celestialOrbitRadius;
-  const labelScale = celestialLabelRadius / celestialOrbitRadius;
+  const yOffset = Math.cos(celestialOrbitAngle) * celestialOrbitRadius;
+  const y = celestialOrbitCenterHeight - yOffset;
+  const oppositeY = celestialOrbitCenterHeight + yOffset;
 
-  sunGlow.position.set(x, celestialHeight, z);
-  sunWord.position.set(x * labelScale, celestialHeight, z * labelScale);
-  moon.position.set(-x, celestialHeight, -z);
-  moonWord.position.set(-x * labelScale, celestialHeight, -z * labelScale);
-  sun.position.set(x, 110, z);
+  sunGlow.position.set(x, y, celestialOrbitDepth);
+  sunWord.position.set(x, y, celestialLabelDepth);
+  moon.position.set(-x, oppositeY, celestialOrbitDepth);
+  moonWord.position.set(-x, oppositeY, celestialLabelDepth);
+  sun.position.set(x, y + 76, celestialOrbitDepth);
 }
 
 function updateWorldSettings() {
@@ -1194,10 +1197,10 @@ function activateMadeInHeaven() {
 
 function updateMadeInHeavenEffect(delta) {
   if (!madeInHeavenActive) {
-    celestialOrbitAngle += delta * 0.18;
+    celestialOrbitAngle += delta * idleCelestialSpinSpeed;
     updateCelestialPositions();
-    sunGlow.rotation.y += delta * 0.18;
-    moon.rotation.y -= delta * 0.18;
+    sunGlow.rotation.y += delta * idleCelestialSpinSpeed;
+    moon.rotation.y -= delta * idleCelestialSpinSpeed;
     return;
   }
 
