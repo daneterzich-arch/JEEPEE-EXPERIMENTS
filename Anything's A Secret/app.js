@@ -827,25 +827,14 @@ scene.add(moonWord);
 
 const crossGroup = new THREE.Group();
 const crossMaterial = new THREE.MeshStandardMaterial({
-  color: '#d8d2c5',
-  metalness: 0.82,
-  roughness: 0.25,
-  emissive: '#3a342d',
-  emissiveIntensity: 0.25
+  color: '#705037',
+  roughness: 0.88
 });
-const crossStem = new THREE.Mesh(new THREE.BoxGeometry(1.8, 13, 1.8), crossMaterial);
-crossStem.position.y = 6.5;
-const crossArm = new THREE.Mesh(new THREE.BoxGeometry(7.5, 1.8, 1.8), crossMaterial);
-crossArm.position.y = 12.1;
-const crossCore = new THREE.Mesh(new THREE.SphereGeometry(1.3, 24, 20), new THREE.MeshStandardMaterial({
-  color: '#f2d38d',
-  emissive: '#4a3a17',
-  emissiveIntensity: 0.45,
-  metalness: 0.72,
-  roughness: 0.28
-}));
-crossCore.position.y = 13.2;
-crossGroup.add(crossStem, crossArm, crossCore);
+const crossStem = new THREE.Mesh(new THREE.BoxGeometry(1.6, 14, 1.6), crossMaterial);
+crossStem.position.y = 7;
+const crossArm = new THREE.Mesh(new THREE.BoxGeometry(7.5, 1.5, 1.6), crossMaterial);
+crossArm.position.y = 9.6;
+crossGroup.add(crossStem, crossArm);
 crossGroup.position.set(0, 0.35, -50);
 scene.add(crossGroup);
 
@@ -1137,14 +1126,31 @@ const passwordIndex = [
   }
 ];
 const passwordSecrets = new Map(passwordIndex.filter(({ phrase }) => phrase).map(({ phrase, id }) => [phrase, id]));
-const crossRadius = 10;
+const crossRadius = 50;
+const celestialOrbitRadius = Math.hypot(68, 130);
+const celestialHeight = 34;
+const celestialLabelRadius = celestialOrbitRadius - 11.5;
 const madeInHeavenDurationMs = 30000;
 const madeInHeavenPhrase = 'madeinheaven';
 let timeOfDay = 'day';
 let activeStarPhrase = null;
+let celestialOrbitAngle = Math.atan2(68, 130);
 let madeInHeavenActive = false;
+let madeInHeavenActivated = false;
 let madeInHeavenStartedAt = 0;
 let madeInHeavenCycleClock = 0;
+
+function updateCelestialPositions() {
+  const x = Math.sin(celestialOrbitAngle) * celestialOrbitRadius;
+  const z = -Math.cos(celestialOrbitAngle) * celestialOrbitRadius;
+  const labelScale = celestialLabelRadius / celestialOrbitRadius;
+
+  sunGlow.position.set(x, celestialHeight, z);
+  sunWord.position.set(x * labelScale, celestialHeight, z * labelScale);
+  moon.position.set(-x, celestialHeight, -z);
+  moonWord.position.set(-x * labelScale, celestialHeight, -z * labelScale);
+  sun.position.set(x, 110, z);
+}
 
 function updateWorldSettings() {
   const isNight = timeOfDay === 'night';
@@ -1178,6 +1184,7 @@ function updateWorldSettings() {
 function activateMadeInHeaven() {
   if (madeInHeavenActive) return;
   madeInHeavenActive = true;
+  madeInHeavenActivated = true;
   madeInHeavenStartedAt = performance.now();
   madeInHeavenCycleClock = 0;
   timeOfDay = 'day';
@@ -1187,8 +1194,10 @@ function activateMadeInHeaven() {
 
 function updateMadeInHeavenEffect(delta) {
   if (!madeInHeavenActive) {
-    sun.rotation.y += delta * 0.18;
-    moon.rotation.y += delta * 0.18;
+    celestialOrbitAngle += delta * 0.18;
+    updateCelestialPositions();
+    sunGlow.rotation.y += delta * 0.18;
+    moon.rotation.y -= delta * 0.18;
     return;
   }
 
@@ -1201,12 +1210,14 @@ function updateMadeInHeavenEffect(delta) {
     return;
   }
 
-  const phaseSpeed = Math.pow(1.5, elapsedMs / 9000);
+  const phaseSpeed = Math.pow(2.25, elapsedMs / 9000);
   madeInHeavenCycleClock += delta * phaseSpeed;
 
   const spinSpeed = 1.2 * phaseSpeed + 0.8;
-  sun.rotation.y += delta * spinSpeed;
-  moon.rotation.y += delta * spinSpeed;
+  celestialOrbitAngle += delta * spinSpeed;
+  updateCelestialPositions();
+  sunGlow.rotation.y += delta * spinSpeed;
+  moon.rotation.y -= delta * spinSpeed;
 
   if (madeInHeavenCycleClock >= 6) {
     madeInHeavenCycleClock = 0;
@@ -1222,6 +1233,7 @@ for (const input of timeOfDayInputs) {
   });
 }
 
+updateCelestialPositions();
 updateWorldSettings();
 
 function renderPasswordIndex(rank = activePasswordRank) {
@@ -1512,7 +1524,7 @@ passwordForm.addEventListener('submit', (event) => {
     return;
   }
 
-  if (phrase === 'enricopucci' && !madeInHeavenActive) {
+  if (phrase === 'enricopucci' && !madeInHeavenActivated) {
     passwordInput.setAttribute('aria-invalid', 'true');
     passwordHint.textContent = 'The world is not ready for that name yet.';
     return;
