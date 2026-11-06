@@ -792,7 +792,7 @@ function createWordSprite(text, options = {}) {
 }
 
 const sunGlow = new THREE.Mesh(
-  new THREE.SphereGeometry(11.5, 36, 36),
+  new THREE.SphereGeometry(34.5, 36, 36),
   new THREE.MeshBasicMaterial({ color: '#ffd778', transparent: true, opacity: 0.96 })
 );
 sunGlow.position.set(68, 34, -130);
@@ -802,13 +802,13 @@ const sunWord = createWordSprite('sunc0d3', {
   fillStyle: 'rgba(255, 187, 89, 0.52)',
   font: '700 220px Georgia, serif',
   opacity: 0.7,
-  scale: [14, 4.8, 1]
+  scale: [42, 14.4, 1]
 });
 sunWord.position.set(68, 34, -118.5);
 scene.add(sunWord);
 
 const moon = new THREE.Mesh(
-  new THREE.SphereGeometry(10, 32, 24),
+  new THREE.SphereGeometry(30, 32, 24),
   new THREE.MeshBasicMaterial({ color: '#b9c3cf' })
 );
 moon.position.set(68, 34, -130);
@@ -819,7 +819,7 @@ const moonWord = createWordSprite('FU11M00N', {
   fillStyle: 'rgba(125, 139, 154, 0.58)',
   font: '700 190px Georgia, serif',
   opacity: 0.56,
-  scale: [14, 4.2, 1]
+  scale: [42, 12.6, 1]
 });
 moonWord.position.set(68, 34, -118.5);
 moonWord.visible = false;
@@ -1127,31 +1127,34 @@ const passwordIndex = [
 ];
 const passwordSecrets = new Map(passwordIndex.filter(({ phrase }) => phrase).map(({ phrase, id }) => [phrase, id]));
 const crossRadius = 50;
-const celestialOrbitRadius = Math.hypot(68, 68);
-const celestialOrbitCenterHeight = 102;
-const celestialOrbitDepth = -130;
-const celestialLabelDepth = celestialOrbitDepth + 11.5;
+const celestialOrbitRadius = 420;
+const celestialOrbitAnchor = player.position.clone();
+const celestialOrbitCenterHeight = celestialOrbitAnchor.y + 580;
+const celestialOrbitDepth = celestialOrbitAnchor.z;
+const celestialLabelDepth = celestialOrbitDepth + 36;
 const idleCelestialSpinSpeed = 0.18 / 20;
 const madeInHeavenDurationMs = 30000;
 const madeInHeavenPhrase = 'madeinheaven';
 let timeOfDay = 'day';
 let activeStarPhrase = null;
-let celestialOrbitAngle = Math.atan2(68, 68);
+let celestialOrbitAngle = 0;
 let madeInHeavenActive = false;
 let madeInHeavenActivated = false;
 let madeInHeavenStartedAt = 0;
 let madeInHeavenCycleClock = 0;
 
 function updateCelestialPositions() {
-  const x = Math.sin(celestialOrbitAngle) * celestialOrbitRadius;
+  const xOffset = Math.sin(celestialOrbitAngle) * celestialOrbitRadius;
   const yOffset = Math.cos(celestialOrbitAngle) * celestialOrbitRadius;
+  const x = celestialOrbitAnchor.x + xOffset;
   const y = celestialOrbitCenterHeight - yOffset;
+  const oppositeX = celestialOrbitAnchor.x - xOffset;
   const oppositeY = celestialOrbitCenterHeight + yOffset;
 
   sunGlow.position.set(x, y, celestialOrbitDepth);
   sunWord.position.set(x, y, celestialLabelDepth);
-  moon.position.set(-x, oppositeY, celestialOrbitDepth);
-  moonWord.position.set(-x, oppositeY, celestialLabelDepth);
+  moon.position.set(oppositeX, oppositeY, celestialOrbitDepth);
+  moonWord.position.set(oppositeX, oppositeY, celestialLabelDepth);
   sun.position.set(x, y + 76, celestialOrbitDepth);
 }
 
