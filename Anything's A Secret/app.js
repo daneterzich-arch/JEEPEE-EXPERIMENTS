@@ -1,5 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
 
+const mfDoomImageUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/' +
+  'MF_Doom_-_Hultsfred_2011_%28cropped%29.jpg/960px-MF_Doom_-_Hultsfred_2011_%28cropped%29.jpg';
 const canvas = document.querySelector('#world');
 const startScreen = document.querySelector('#start-screen');
 const enterButton = document.querySelector('#enter-world');
@@ -558,8 +560,8 @@ for (const center of [-13, 13]) {
 const northRoomDoorwayZ = upperHall.minZ + 8.5;
 const southRoomDoorwayZ = upperHall.maxZ - 7;
 const roomSplitZ = 0;
-const westWingStart = floorMinX;
-const eastWingEnd = floorMaxX;
+const westWingStart = houseMinX;
+const eastWingEnd = houseMaxX;
 const loftFrontRailZ = loftMinZ;
 
 addUpperPartition('z', upperHall.minX, upperHall.minZ, loftMinZ, [
@@ -1213,20 +1215,14 @@ const portrait = new THREE.Mesh(new THREE.PlaneGeometry(2.95, 2.95), portraitMat
 portrait.position.set(portraitFrameX - 0.12, portraitY, portraitZ);
 portrait.rotation.y = -Math.PI / 2;
 scene.add(portrait);
-fetch('https://en.wikipedia.org/w/api.php?action=query&titles=MF_Doom&prop=pageimages&format=json&pithumbsize=600&origin=*')
-  .then((response) => response.json())
-  .then((data) => {
-    const imageUrl = Object.values(data.query.pages)[0]?.thumbnail?.source;
-    if (!imageUrl) return;
-    const portraitImage = new Image();
-    portraitImage.crossOrigin = 'anonymous';
-    portraitImage.onload = () => {
-      portraitTexture.image = portraitImage;
-      portraitTexture.needsUpdate = true;
-    };
-    portraitImage.src = imageUrl;
-  })
-  .catch(() => {});
+const portraitImage = new Image();
+portraitImage.crossOrigin = 'anonymous';
+portraitImage.onload = () => {
+  portraitTexture.image = portraitImage;
+  portraitTexture.needsUpdate = true;
+};
+portraitImage.onerror = () => console.warn(`Could not load MF DOOM portrait from ${mfDoomImageUrl}.`);
+portraitImage.src = mfDoomImageUrl;
 
 const fridgeInteractionPosition = new THREE.Vector3(
   fridgePosition.x,
@@ -1493,9 +1489,9 @@ function addUpstairsWallArt(imagePath, title, credit, license, position, width, 
 
 const westBedroomArtX = upperHall.minX - 0.5;
 const eastBedroomArtX = upperHall.maxX + 0.5;
-addUpstairsWallArt('./assets/mf-doom-live.jpg', 'MF DOOM', 'Possan', 'CC BY 2.0',
+addUpstairsWallArt(mfDoomImageUrl, 'MF DOOM', 'Possan', 'CC BY-SA 3.0',
   [westBedroomArtX, upperFloorTop + 5.7, 3.2], 4.9, 3.2, -Math.PI / 2);
-addUpstairsWallArt('./assets/mf-doom-hultsfred.jpg', 'MF DOOM', 'Possan', 'CC BY-SA 3.0',
+addUpstairsWallArt(mfDoomImageUrl, 'MF DOOM', 'Possan', 'CC BY-SA 3.0',
   [westBedroomArtX, upperFloorTop + 5.3, 11.1], 3.3, 4.8, -Math.PI / 2);
 addUpstairsWallArt('./assets/people-under-the-stairs.jpg', 'People Under The Stairs', 'Piecelock70', 'CC BY-SA 3.0',
   [eastBedroomArtX, upperFloorTop + 5.5, 3.1], 4.2, 4.2, Math.PI / 2);
