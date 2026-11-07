@@ -61,7 +61,6 @@ const skyUniforms = {
   nightZenith: { value: new THREE.Color('#09111d') },
   twilightColor: { value: new THREE.Color('#e85c3d') },
   moonSideColor: { value: new THREE.Color('#181a29') },
-  sunDirection: { value: new THREE.Vector3(1, 0, 0) },
   moonDirection: { value: new THREE.Vector3(-1, 0, 0) },
   daylight: { value: 1 },
   twilight: { value: 0 },
@@ -85,7 +84,6 @@ const skyDome = new THREE.Mesh(
       uniform vec3 nightZenith;
       uniform vec3 twilightColor;
       uniform vec3 moonSideColor;
-      uniform vec3 sunDirection;
       uniform vec3 moonDirection;
       uniform float daylight;
       uniform float twilight;
@@ -97,9 +95,8 @@ const skyDome = new THREE.Mesh(
         vec3 dayColor = mix(dayHorizon, dayZenith, horizon);
         vec3 nightColor = mix(nightHorizon, nightZenith, horizon);
         vec3 color = mix(nightColor, dayColor, daylight);
-        float sunAlignment = max(dot(direction, normalize(sunDirection)), 0.0);
-        float sunHalo = pow(sunAlignment, 5.0) * 0.28 + pow(sunAlignment, 24.0) * 0.72;
-        color = mix(color, twilightColor, twilight * sunHalo);
+        float horizonGlow = 1.0 - smoothstep(0.0, 0.42, max(direction.y, 0.0));
+        color = mix(color, twilightColor, twilight * horizonGlow);
         float moonAlignment = max(dot(direction, normalize(moonDirection)), 0.0);
         float moonShade = pow(moonAlignment, 3.0) * moonDarkening * 0.72;
         color = mix(color, moonSideColor, moonShade);
@@ -1992,7 +1989,6 @@ function updateWorldSettings() {
   skyUniforms.daylight.value = daylight;
   skyUniforms.twilight.value = twilight;
   skyUniforms.moonDarkening.value = twilight;
-  skyUniforms.sunDirection.value.copy(sunGlow.position).sub(camera.position).normalize();
   skyUniforms.moonDirection.value.copy(moon.position).sub(camera.position).normalize();
   scene.background.copy(nightBackgroundColor).lerp(dayBackgroundColor, daylight);
   scene.fog.color.copy(nightBackgroundColor).lerp(dayBackgroundColor, daylight);
@@ -2589,7 +2585,6 @@ function animate(now) {
   flashlight.position.copy(camera.position).addScaledVector(flashlightDirection, 0.3);
   flashlight.target.position.copy(camera.position).addScaledVector(flashlightDirection, 38);
   skyDome.position.copy(camera.position);
-  skyUniforms.sunDirection.value.copy(sunGlow.position).sub(camera.position).normalize();
   skyUniforms.moonDirection.value.copy(moon.position).sub(camera.position).normalize();
 
   renderer.render(scene, camera);
