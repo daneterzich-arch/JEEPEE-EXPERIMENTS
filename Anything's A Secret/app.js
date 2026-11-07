@@ -561,14 +561,17 @@ const westWingStart = houseMinX;
 const eastWingEnd = houseMaxX;
 const loftFrontRailZ = loftMinZ;
 
-addUpperPartition('z', upperHall.minX, upperHall.minZ, loftMinZ, [
+addUpperPartition('z', upperHall.minX, houseMinZ, loftMinZ + 3, [
   { center: northRoomDoorwayZ, width: 3.8 },
   { center: southRoomDoorwayZ, width: 3.8 }
 ]);
-addUpperPartition('z', upperHall.maxX, upperHall.minZ, loftMinZ, [
+addUpperPartition('x', loftMinZ + 3, westWingStart, upperHall.minX);
+addUpperPartition('z', upperHall.maxX, houseMinZ, loftMinZ, [
   { center: northRoomDoorwayZ, width: 3.8 },
   { center: southRoomDoorwayZ, width: 3.8 }
 ]);
+addUpperPartition('z', upperHall.maxX, loftMinZ, loftMinZ + 3);
+addUpperPartition('x', loftMinZ + 3, upperHall.maxX, eastWingEnd);
 addUpperPartition('x', roomSplitZ, westWingStart, upperHall.minX, [
   { center: house.centerX - 11, width: 3.5 }
 ]);
